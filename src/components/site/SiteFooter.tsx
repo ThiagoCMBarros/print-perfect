@@ -56,8 +56,8 @@ export function SiteFooter() {
         <div>
           <h4 className="text-sm font-semibold">Contato</h4>
           <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
-            <li className="flex items-center gap-2"><Phone className="h-4 w-4 text-brand" /> (11) 4000-0000</li>
-            <li className="flex items-center gap-2"><Mail className="h-4 w-4 text-brand" /> contato@graficapro.com.br</li>
+            <li className="flex items-center gap-2"><Phone className="h-4 w-4 text-brand" /><span>(11) 4000-0000</span></li>
+            <li className="flex items-center gap-2"><Mail className="h-4 w-4 text-brand" /><span>contato@graficapro.com.br</span></li>
             <li className="text-xs">Seg a Sex, 9h às 18h</li>
           </ul>
         </div>
