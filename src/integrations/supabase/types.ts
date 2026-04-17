@@ -63,7 +63,15 @@ export type Database = {
           user_id?: string
           zip_code?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "addresses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_view"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       cart_items: {
         Row: {
@@ -144,6 +152,13 @@ export type Database = {
             referencedRelation: "product_options"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "cart_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_view"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       categories: {
@@ -178,6 +193,12 @@ export type Database = {
       }
       order_items: {
         Row: {
+          artwork_filename: string | null
+          artwork_note: string | null
+          artwork_path: string | null
+          artwork_reviewed_at: string | null
+          artwork_status: Database["public"]["Enums"]["artwork_status"]
+          artwork_uploaded_at: string | null
           config: Json
           created_at: string
           id: string
@@ -190,6 +211,12 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          artwork_filename?: string | null
+          artwork_note?: string | null
+          artwork_path?: string | null
+          artwork_reviewed_at?: string | null
+          artwork_status?: Database["public"]["Enums"]["artwork_status"]
+          artwork_uploaded_at?: string | null
           config: Json
           created_at?: string
           id?: string
@@ -202,6 +229,12 @@ export type Database = {
           unit_price: number
         }
         Update: {
+          artwork_filename?: string | null
+          artwork_note?: string | null
+          artwork_path?: string | null
+          artwork_reviewed_at?: string | null
+          artwork_status?: Database["public"]["Enums"]["artwork_status"]
+          artwork_uploaded_at?: string | null
           config?: Json
           created_at?: string
           id?: string
@@ -256,6 +289,13 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"]
         }
         Relationships: [
+          {
+            foreignKeyName: "order_status_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users_view"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "order_status_history_order_id_fkey"
             columns: ["order_id"]
@@ -314,7 +354,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_view"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       product_options: {
         Row: {
@@ -441,7 +489,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "admin_users_view"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -462,13 +518,44 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_view"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
     }
     Views: {
-      [_ in never]: never
+      admin_users_view: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          is_admin: boolean | null
+          phone: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      admin_list_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          is_admin: boolean
+          orders_count: number
+          phone: string
+          total_spent: number
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -476,9 +563,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      set_user_admin: {
+        Args: { _make_admin: boolean; _user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "customer"
+      artwork_status: "none" | "pending" | "approved" | "rejected"
       option_type: "size" | "material" | "finish" | "quantity"
       order_status:
         | "aguardando_pagamento"
@@ -620,6 +712,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "customer"],
+      artwork_status: ["none", "pending", "approved", "rejected"],
       option_type: ["size", "material", "finish", "quantity"],
       order_status: [
         "aguardando_pagamento",
