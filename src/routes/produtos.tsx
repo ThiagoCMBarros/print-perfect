@@ -36,8 +36,9 @@ function ProductsPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
 
-  const update = (patch: Partial<z.infer<typeof searchSchema>>) =>
-    navigate({ search: (prev) => ({ ...prev, ...patch }) });
+  type SearchT = z.infer<typeof searchSchema>;
+  const update = (patch: Partial<SearchT>) =>
+    navigate({ search: (prev: SearchT) => ({ ...prev, ...patch }) });
 
   const filtered = useMemo(() => {
     let list = [...products];

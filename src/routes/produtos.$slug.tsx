@@ -112,25 +112,25 @@ function ProductPage() {
               label="Tamanho"
               value={sizeId}
               onChange={setSizeId}
-              options={product.sizes.map((o) => ({ id: o.id, label: o.label }))}
+              options={product.sizes.map((o: { id: string; label: string }) => ({ id: o.id, label: o.label }))}
             />
             <OptionGroup
               label="Material / gramatura"
               value={materialId}
               onChange={setMaterialId}
-              options={product.materials.map((o) => ({ id: o.id, label: o.label }))}
+              options={product.materials.map((o: { id: string; label: string }) => ({ id: o.id, label: o.label }))}
             />
             <OptionGroup
               label="Acabamento"
               value={finishId}
               onChange={setFinishId}
-              options={product.finishes.map((o) => ({ id: o.id, label: o.label }))}
+              options={product.finishes.map((o: { id: string; label: string }) => ({ id: o.id, label: o.label }))}
             />
             <OptionGroup
               label="Quantidade"
               value={quantityId}
               onChange={setQuantityId}
-              options={product.quantities.map((o) => ({
+              options={product.quantities.map((o: { id: string; value: number }) => ({
                 id: o.id,
                 label: `${o.value.toLocaleString("pt-BR")} un`,
               }))}
