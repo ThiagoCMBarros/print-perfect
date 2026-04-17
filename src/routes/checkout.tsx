@@ -73,7 +73,7 @@ function CheckoutPage() {
     );
   }
 
-  const shipping = subtotal >= 199 ? 0 : 24.9;
+  const shipping = subtotal >= 250 ? 0 : 29.9;
   const total = subtotal + shipping;
   const estimatedDays = Math.max(...items.map((i) => (i.urgency === "express" ? 2 : 4)));
 

@@ -82,7 +82,7 @@ function HomePage() {
         <div className="container-page grid gap-10 py-16 md:py-24 lg:grid-cols-2 lg:gap-12">
           <div className="flex flex-col justify-center">
             <Badge className="w-fit rounded-full bg-brand-soft px-3 py-1 text-brand hover:bg-brand-soft">
-              ✨ Frete grátis acima de R$ 199
+              ✨ Frete grátis acima de R$ 250
             </Badge>
             <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.05] sm:text-5xl lg:text-6xl">
               Impressão profissional<br />
