@@ -9,7 +9,16 @@ import { PenTool, Download, Upload as UploadIcon } from "lucide-react";
 type Props = {
   triggerLabel?: string;
   defaultTemplate?: TemplateKey;
+  categorySlug?: string;
   onExport?: (dataUrl: string) => void;
+};
+
+const SLUG_TO_TEMPLATE: Record<string, TemplateKey> = {
+  cartoes: "card",
+  panfletos: "flyer",
+  flyers: "flyer",
+  banners: "banner",
+  adesivos: "sticker",
 };
 
 const BG_PRESETS = ["#ffffff", "#0f172a", "#3b82f6", "#0ea5e9", "#10b981", "#ef4444", "#f59e0b", "#111827"];
@@ -37,9 +46,10 @@ const TEMPLATES: Record<TemplateKey, {
  * Editor MVP — suporta cartão, flyer, banner e adesivo.
  * Permite cor de fundo, logo, e 4 campos de texto. Exporta PNG em alta resolução.
  */
-export function CardEditor({ triggerLabel = "Personalizar arte", defaultTemplate = "card", onExport }: Props) {
+export function CardEditor({ triggerLabel = "Personalizar arte", defaultTemplate, categorySlug, onExport }: Props) {
+  const initial: TemplateKey = defaultTemplate ?? (categorySlug ? SLUG_TO_TEMPLATE[categorySlug] : undefined) ?? "card";
   const [open, setOpen] = useState(false);
-  const [tpl, setTpl] = useState<TemplateKey>(defaultTemplate);
+  const [tpl, setTpl] = useState<TemplateKey>(initial);
   const t = TEMPLATES[tpl];
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [bg, setBg] = useState("#0f172a");
