@@ -28,6 +28,8 @@ import { Route as ContaPedidosRouteImport } from './routes/conta.pedidos'
 import { Route as ContaEnderecosRouteImport } from './routes/conta.enderecos'
 import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
 import { Route as AdminOpcoesRouteImport } from './routes/admin.opcoes'
+import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
+import { Route as AdminClientesRouteImport } from './routes/admin.clientes'
 import { Route as AdminCategoriasRouteImport } from './routes/admin.categorias'
 import { Route as AdminProdutosIdRouteImport } from './routes/admin.produtos.$id'
 
@@ -126,6 +128,16 @@ const AdminOpcoesRoute = AdminOpcoesRouteImport.update({
   path: '/opcoes',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminClientesRoute = AdminClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCategoriasRoute = AdminCategoriasRouteImport.update({
   id: '/categorias',
   path: '/categorias',
@@ -150,6 +162,8 @@ export interface FileRoutesByFullPath {
   '/produtos': typeof ProdutosRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/admin/categorias': typeof AdminCategoriasRoute
+  '/admin/clientes': typeof AdminClientesRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/opcoes': typeof AdminOpcoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/conta/enderecos': typeof ContaEnderecosRoute
@@ -171,6 +185,8 @@ export interface FileRoutesByTo {
   '/produtos': typeof ProdutosRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/admin/categorias': typeof AdminCategoriasRoute
+  '/admin/clientes': typeof AdminClientesRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/opcoes': typeof AdminOpcoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/conta/enderecos': typeof ContaEnderecosRoute
@@ -195,6 +211,8 @@ export interface FileRoutesById {
   '/produtos': typeof ProdutosRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/admin/categorias': typeof AdminCategoriasRoute
+  '/admin/clientes': typeof AdminClientesRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/opcoes': typeof AdminOpcoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/conta/enderecos': typeof ContaEnderecosRoute
@@ -220,6 +238,8 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/reset-password'
     | '/admin/categorias'
+    | '/admin/clientes'
+    | '/admin/dashboard'
     | '/admin/opcoes'
     | '/admin/pedidos'
     | '/conta/enderecos'
@@ -241,6 +261,8 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/reset-password'
     | '/admin/categorias'
+    | '/admin/clientes'
+    | '/admin/dashboard'
     | '/admin/opcoes'
     | '/admin/pedidos'
     | '/conta/enderecos'
@@ -264,6 +286,8 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/reset-password'
     | '/admin/categorias'
+    | '/admin/clientes'
+    | '/admin/dashboard'
     | '/admin/opcoes'
     | '/admin/pedidos'
     | '/conta/enderecos'
@@ -425,6 +449,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOpcoesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/clientes': {
+      id: '/admin/clientes'
+      path: '/clientes'
+      fullPath: '/admin/clientes'
+      preLoaderRoute: typeof AdminClientesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/categorias': {
       id: '/admin/categorias'
       path: '/categorias'
@@ -444,6 +482,8 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminCategoriasRoute: typeof AdminCategoriasRoute
+  AdminClientesRoute: typeof AdminClientesRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
   AdminOpcoesRoute: typeof AdminOpcoesRoute
   AdminPedidosRoute: typeof AdminPedidosRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -452,6 +492,8 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriasRoute: AdminCategoriasRoute,
+  AdminClientesRoute: AdminClientesRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
   AdminOpcoesRoute: AdminOpcoesRoute,
   AdminPedidosRoute: AdminPedidosRoute,
   AdminIndexRoute: AdminIndexRoute,

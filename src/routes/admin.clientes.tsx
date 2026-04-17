@@ -30,7 +30,6 @@ function AdminClients() {
 
   async function load() {
     setLoading(true);
-    // @ts-expect-error RPC ainda não está nos types regen
     const { data, error } = await supabase.rpc("admin_list_users");
     if (error) toast.error(error.message);
     setRows((data as Row[]) ?? []);
@@ -41,7 +40,6 @@ function AdminClients() {
   async function toggleAdmin(r: Row) {
     const ok = confirm(`${r.is_admin ? "Remover admin de" : "Promover a admin"} ${r.email}?`);
     if (!ok) return;
-    // @ts-expect-error RPC ainda não está nos types
     const { error } = await supabase.rpc("set_user_admin", { _user_id: r.user_id, _make_admin: !r.is_admin });
     if (error) return toast.error(error.message);
     toast.success("Atualizado.");
