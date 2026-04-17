@@ -1,9 +1,15 @@
-import { Link } from "@tanstack/react-router";
-import { Search, ShoppingCart, User, Menu, Printer } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Search, ShoppingCart, User, Menu, Printer, LogOut, Package } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 
 const navLinks = [
   { to: "/produtos", label: "Produtos" },
@@ -14,6 +20,9 @@ const navLinks = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const { count } = useCart();
+  const navigate = useNavigate();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
@@ -25,9 +34,7 @@ export function SiteHeader() {
           >
             <Printer className="h-5 w-5" />
           </span>
-          <span>
-            Gráfica<span className="text-brand">Pro</span>
-          </span>
+          <span>Gráfica<span className="text-brand">Pro</span></span>
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">
@@ -46,24 +53,49 @@ export function SiteHeader() {
         <div className="ml-auto hidden flex-1 max-w-sm md:block">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar produtos..."
-              className="h-10 rounded-full bg-surface-muted pl-9 border-transparent focus-visible:bg-background"
-            />
+            <Input placeholder="Buscar produtos..." className="h-10 rounded-full bg-surface-muted pl-9 border-transparent focus-visible:bg-background" />
           </div>
         </div>
 
         <div className="ml-auto flex items-center gap-1 md:ml-0">
-          <Button variant="ghost" size="sm" className="hidden sm:inline-flex" asChild>
-            <Link to="/login">
-              <User className="mr-1.5 h-4 w-4" /> Entrar
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
+                  <User className="mr-1.5 h-4 w-4" />
+                  {user.email?.split("@")[0]}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate({ to: "/conta" })}>
+                  <User className="mr-2 h-4 w-4" /> Meu perfil
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate({ to: "/conta/pedidos" })}>
+                  <Package className="mr-2 h-4 w-4" /> Meus pedidos
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={async () => { await signOut(); navigate({ to: "/" }); }}>
+                  <LogOut className="mr-2 h-4 w-4" /> Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="ghost" size="sm" className="hidden sm:inline-flex" asChild>
+              <Link to="/login"><User className="mr-1.5 h-4 w-4" /> Entrar</Link>
+            </Button>
+          )}
+
+          <Button variant="ghost" size="icon" className="relative" aria-label="Carrinho" asChild>
+            <Link to="/carrinho">
+              <ShoppingCart className="h-5 w-5" />
+              {count > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[10px] font-bold text-brand-foreground">
+                  {count}
+                </span>
+              )}
             </Link>
-          </Button>
-          <Button variant="ghost" size="icon" className="relative" aria-label="Carrinho">
-            <ShoppingCart className="h-5 w-5" />
-            <span className="absolute -right-0.5 -top-0.5 grid h-4 w-4 place-items-center rounded-full bg-brand text-[10px] font-bold text-brand-foreground">
-              0
-            </span>
           </Button>
 
           <Sheet open={open} onOpenChange={setOpen}>
@@ -75,22 +107,19 @@ export function SiteHeader() {
             <SheetContent side="right" className="w-72">
               <div className="mt-8 flex flex-col gap-1">
                 {navLinks.map((l) => (
-                  <Link
-                    key={l.to}
-                    to={l.to}
-                    onClick={() => setOpen(false)}
-                    className="rounded-md px-3 py-3 text-base font-medium hover:bg-accent"
-                  >
+                  <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="rounded-md px-3 py-3 text-base font-medium hover:bg-accent">
                     {l.label}
                   </Link>
                 ))}
-                <Link
-                  to="/login"
-                  onClick={() => setOpen(false)}
-                  className="mt-2 rounded-md px-3 py-3 text-base font-medium hover:bg-accent"
-                >
-                  Entrar / Cadastrar
-                </Link>
+                {user ? (
+                  <>
+                    <Link to="/conta" onClick={() => setOpen(false)} className="rounded-md px-3 py-3 text-base font-medium hover:bg-accent">Minha conta</Link>
+                    <Link to="/conta/pedidos" onClick={() => setOpen(false)} className="rounded-md px-3 py-3 text-base font-medium hover:bg-accent">Meus pedidos</Link>
+                    <button onClick={async () => { setOpen(false); await signOut(); navigate({ to: "/" }); }} className="rounded-md px-3 py-3 text-left text-base font-medium hover:bg-accent">Sair</button>
+                  </>
+                ) : (
+                  <Link to="/login" onClick={() => setOpen(false)} className="mt-2 rounded-md px-3 py-3 text-base font-medium hover:bg-accent">Entrar / Cadastrar</Link>
+                )}
               </div>
             </SheetContent>
           </Sheet>
