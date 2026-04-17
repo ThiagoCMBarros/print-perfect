@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CardEditor } from "@/components/site/CardEditor";
 import { toast } from "sonner";
 import {
   calcPrice, fetchProductBySlug, formatBRL, getOptions, type ProductWithOptions,
@@ -226,10 +227,22 @@ function ProductPage() {
                 <p className="text-xs text-muted-foreground">PDF, AI, PSD, JPG, PNG · até 50MB</p>
               </TabsContent>
               <TabsContent value="editor" className="mt-3 rounded-xl bg-background p-5 text-sm">
-                <p className="font-medium">Editor online (em breve)</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Personalize com texto, imagens e cores diretamente no navegador.
-                </p>
+                {product.categories?.slug === "cartoes" ? (
+                  <>
+                    <p className="font-medium">Editor online</p>
+                    <p className="mb-3 mt-1 text-xs text-muted-foreground">
+                      Personalize seu cartão com texto, logo e cores. Baixe o PNG e envie depois no pedido.
+                    </p>
+                    <CardEditor />
+                  </>
+                ) : (
+                  <>
+                    <p className="font-medium">Editor disponível só para cartões de visita</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Para outros produtos, envie sua arte pronta no pedido.
+                    </p>
+                  </>
+                )}
               </TabsContent>
               <TabsContent value="help" className="mt-3 rounded-xl bg-background p-5 text-sm">
                 <p className="font-medium">Solicite ajuda com a arte</p>

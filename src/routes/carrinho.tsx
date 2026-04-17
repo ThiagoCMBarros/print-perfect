@@ -47,7 +47,7 @@ function CartPage() {
     );
   }
 
-  const shipping = subtotal >= 199 ? 0 : 24.9;
+  const shipping = subtotal >= 250 ? 0 : 29.9;
   const total = subtotal + shipping;
 
   return (
@@ -92,7 +92,7 @@ function CartPage() {
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatBRL(subtotal)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Frete</span><span>{shipping === 0 ? "Grátis" : formatBRL(shipping)}</span></div>
               {shipping > 0 && (
-                <p className="text-xs text-muted-foreground">Faltam {formatBRL(199 - subtotal)} para frete grátis.</p>
+                <p className="text-xs text-muted-foreground">Faltam {formatBRL(250 - subtotal)} para frete grátis.</p>
               )}
             </div>
             <div className="mt-4 flex justify-between border-t pt-4 text-lg font-bold">

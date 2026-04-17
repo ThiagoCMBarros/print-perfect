@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, Package, Tags, Settings2, ShoppingBag, Shield, ArrowLeft } from "lucide-react";
+import { Loader2, Package, Tags, Settings2, ShoppingBag, Shield, ArrowLeft, BarChart3, Users } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,12 @@ export const Route = createFileRoute("/admin")({
 });
 
 const tabs = [
+  { to: "/admin/dashboard", label: "Dashboard", icon: BarChart3, exact: false },
   { to: "/admin", label: "Produtos", icon: Package, exact: true },
   { to: "/admin/categorias", label: "Categorias", icon: Tags, exact: false },
   { to: "/admin/opcoes", label: "Opções", icon: Settings2, exact: false },
   { to: "/admin/pedidos", label: "Pedidos", icon: ShoppingBag, exact: false },
+  { to: "/admin/clientes", label: "Clientes", icon: Users, exact: false },
 ] as const;
 
 function AdminLayout() {
