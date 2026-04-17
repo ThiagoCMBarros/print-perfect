@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Search, ShoppingCart, User, Menu, Printer, LogOut, Package } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, Printer, LogOut, Package, Shield } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const navLinks = [
   { to: "/produtos", label: "Produtos" },
@@ -22,6 +23,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { count } = useCart();
+  const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
 
   return (
@@ -75,6 +77,11 @@ export function SiteHeader() {
                 <DropdownMenuItem onClick={() => navigate({ to: "/conta/pedidos" })}>
                   <Package className="mr-2 h-4 w-4" /> Meus pedidos
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem onClick={() => navigate({ to: "/admin" })}>
+                    <Shield className="mr-2 h-4 w-4" /> Painel admin
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={async () => { await signOut(); navigate({ to: "/" }); }}>
                   <LogOut className="mr-2 h-4 w-4" /> Sair
