@@ -1,11 +1,13 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, Package, Truck, Clock } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/catalog";
+import { ArtworkUpload } from "@/components/site/ArtworkUpload";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import type { Tables } from "@/integrations/supabase/types";
 
 type OrderFull = Tables<"orders"> & {
@@ -36,10 +38,11 @@ const STATUS_LABEL: Record<string, string> = {
 
 function OrderPage() {
   const { id } = Route.useParams();
+  const { isAdmin } = useIsAdmin();
   const [order, setOrder] = useState<OrderFull | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     supabase
       .from("orders")
       .select("*, order_items(*), order_status_history(*)")
@@ -50,6 +53,8 @@ function OrderPage() {
         setLoading(false);
       });
   }, [id]);
+
+  useEffect(() => { load(); }, [load]);
 
   if (loading) return <SiteLayout><div className="container-page py-20 text-center text-muted-foreground">Carregando...</div></SiteLayout>;
   if (!order) throw notFound();
@@ -74,13 +79,16 @@ function OrderPage() {
               <h2 className="flex items-center gap-2 font-semibold"><Package className="h-4 w-4 text-brand" /> Itens</h2>
               <ul className="mt-4 divide-y">
                 {order.order_items.map((it) => (
-                  <li key={it.id} className="flex items-center gap-4 py-3">
-                    <div className="grid h-14 w-14 place-items-center rounded-lg bg-surface-muted text-2xl">{it.product_image ?? "📦"}</div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold">{it.product_name}</p>
-                      <p className="text-xs text-muted-foreground">{it.qty} un · {formatBRL(Number(it.unit_price))} / un</p>
+                  <li key={it.id} className="py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="grid h-14 w-14 place-items-center rounded-lg bg-surface-muted text-2xl">{it.product_image ?? "📦"}</div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold">{it.product_name}</p>
+                        <p className="text-xs text-muted-foreground">{it.qty} un · {formatBRL(Number(it.unit_price))} / un</p>
+                      </div>
+                      <p className="font-semibold">{formatBRL(Number(it.total_price))}</p>
                     </div>
-                    <p className="font-semibold">{formatBRL(Number(it.total_price))}</p>
+                    <ArtworkUpload orderId={order.id} item={it} onChange={load} isAdmin={isAdmin} />
                   </li>
                 ))}
               </ul>
