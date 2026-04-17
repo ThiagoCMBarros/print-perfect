@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import {
   ArrowRight, Sparkles, Truck, Headphones, ShieldCheck, Upload,
   PenTool, ShoppingBag, Package, Quote, Star,
@@ -8,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { ProductCard } from "@/components/site/ProductCard";
-import { categories, products } from "@/data/products";
+import { Skeleton } from "@/components/ui/skeleton";
+import { fetchCategories, fetchProducts, type DBCategory } from "@/lib/catalog";
+import type { Tables } from "@/integrations/supabase/types";
 import heroImg from "@/assets/hero-printing.jpg";
 
 export const Route = createFileRoute("/")({
@@ -29,8 +32,6 @@ export const Route = createFileRoute("/")({
   }),
   component: HomePage,
 });
-
-const featured = products.filter((p) => p.bestseller || p.newRelease).slice(0, 4);
 
 const advantages = [
   { icon: Sparkles, title: "Qualidade premium", text: "Equipamentos profissionais e papéis selecionados em cada pedido." },
@@ -53,9 +54,29 @@ const testimonials = [
 ];
 
 function HomePage() {
+  const [categories, setCategories] = useState<DBCategory[]>([]);
+  const [featured, setFeatured] = useState<Tables<"products">[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([fetchCategories(), fetchProducts()])
+      .then(([cats, prods]) => {
+        if (cancelled) return;
+        setCategories(cats);
+        const sorted = [...prods].sort(
+          (a, b) =>
+            Number(!!b.bestseller) - Number(!!a.bestseller) ||
+            Number(!!b.new_release) - Number(!!a.new_release),
+        );
+        setFeatured(sorted.slice(0, 4));
+      })
+      .finally(() => !cancelled && setLoading(false));
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <SiteLayout>
-      {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10" style={{ backgroundImage: "var(--gradient-hero)" }} />
         <div className="container-page grid gap-10 py-16 md:py-24 lg:grid-cols-2 lg:gap-12">
@@ -73,14 +94,10 @@ function HomePage() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg" className="h-12 rounded-full px-7 shadow-glow">
-                <Link to="/produtos">
-                  Comprar agora <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+                <Link to="/produtos">Comprar agora <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="h-12 rounded-full px-7">
-                <Link to="/produtos">
-                  <PenTool className="mr-2 h-4 w-4" /> Personalizar arte
-                </Link>
+                <Link to="/produtos"><PenTool className="mr-2 h-4 w-4" /> Personalizar arte</Link>
               </Button>
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
@@ -101,7 +118,6 @@ function HomePage() {
         </div>
       </section>
 
-      {/* CATEGORIAS */}
       <section className="container-page py-16">
         <div className="flex items-end justify-between gap-4">
           <div>
@@ -114,26 +130,27 @@ function HomePage() {
         </div>
 
         <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {categories.map((c) => {
-            const Icon = (Icons[c.icon as keyof typeof Icons] as Icons.LucideIcon) ?? Icons.Tag;
-            return (
-              <Link
-                key={c.id}
-                to="/produtos"
-                search={{ category: c.slug }}
-                className="group flex flex-col items-center gap-3 rounded-2xl border bg-card p-5 text-center transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-elevated"
-              >
-                <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand-soft text-brand transition-colors group-hover:bg-brand group-hover:text-brand-foreground">
-                  <Icon className="h-5 w-5" />
-                </span>
-                <span className="text-sm font-medium leading-tight">{c.name}</span>
-              </Link>
-            );
-          })}
+          {loading
+            ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)
+            : categories.map((c) => {
+                const Icon = (Icons[c.icon as keyof typeof Icons] as Icons.LucideIcon) ?? Icons.Tag;
+                return (
+                  <Link
+                    key={c.id}
+                    to="/produtos"
+                    search={{ category: c.slug }}
+                    className="group flex flex-col items-center gap-3 rounded-2xl border bg-card p-5 text-center transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-elevated"
+                  >
+                    <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand-soft text-brand transition-colors group-hover:bg-brand group-hover:text-brand-foreground">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <span className="text-sm font-medium leading-tight">{c.name}</span>
+                  </Link>
+                );
+              })}
         </div>
       </section>
 
-      {/* DESTAQUES */}
       <section className="bg-surface-muted py-16">
         <div className="container-page">
           <div className="flex items-end justify-between gap-4">
@@ -146,12 +163,13 @@ function HomePage() {
             </Button>
           </div>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {featured.map((p) => <ProductCard key={p.id} product={p} />)}
+            {loading
+              ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-80 rounded-2xl" />)
+              : featured.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>
       </section>
 
-      {/* COMO FUNCIONA */}
       <section className="container-page py-20">
         <div className="text-center">
           <Badge variant="secondary" className="rounded-full">Simples assim</Badge>
@@ -176,7 +194,6 @@ function HomePage() {
         </div>
       </section>
 
-      {/* VANTAGENS */}
       <section className="bg-surface-muted py-20">
         <div className="container-page">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -195,7 +212,6 @@ function HomePage() {
         </div>
       </section>
 
-      {/* DEPOIMENTOS */}
       <section className="container-page py-20">
         <div className="text-center">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">Quem usa, recomenda</h2>
@@ -223,7 +239,6 @@ function HomePage() {
         </div>
       </section>
 
-      {/* CTA ORÇAMENTO */}
       <section className="container-page pb-20">
         <div
           className="relative overflow-hidden rounded-3xl px-6 py-14 text-center text-brand-foreground sm:px-12"
@@ -239,9 +254,7 @@ function HomePage() {
           </p>
           <div className="relative mt-7">
             <Button asChild size="lg" variant="secondary" className="h-12 rounded-full px-8 text-brand">
-              <Link to="/orcamento">
-                Pedir orçamento personalizado <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+              <Link to="/orcamento">Pedir orçamento personalizado <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </div>
         </div>

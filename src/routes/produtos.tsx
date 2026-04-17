@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { categories, products } from "@/data/products";
+import { Skeleton } from "@/components/ui/skeleton";
+import { fetchCategories, fetchProducts, type DBCategory } from "@/lib/catalog";
+import type { Tables } from "@/integrations/supabase/types";
 
 const searchSchema = z.object({
   category: z.string().optional(),
@@ -32,9 +34,30 @@ export const Route = createFileRoute("/produtos")({
   component: ProductsPage,
 });
 
+type ProductRow = Tables<"products"> & {
+  categories: Pick<DBCategory, "id" | "slug" | "name"> | null;
+};
+
 function ProductsPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
+
+  const [categories, setCategories] = useState<DBCategory[]>([]);
+  const [products, setProducts] = useState<ProductRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    Promise.all([fetchCategories(), fetchProducts({ categorySlug: search.category, q: search.q })])
+      .then(([cats, prods]) => {
+        if (cancelled) return;
+        setCategories(cats);
+        setProducts(prods as ProductRow[]);
+      })
+      .finally(() => !cancelled && setLoading(false));
+    return () => { cancelled = true; };
+  }, [search.category, search.q]);
 
   type SearchT = z.infer<typeof searchSchema>;
   const update = (patch: Partial<SearchT>) =>
@@ -42,28 +65,17 @@ function ProductsPage() {
 
   const filtered = useMemo(() => {
     let list = [...products];
-    if (search.category) {
-      const cat = categories.find((c) => c.slug === search.category);
-      if (cat) list = list.filter((p) => p.categoryId === cat.id);
-    }
-    if (search.q) {
-      const q = search.q.toLowerCase();
-      list = list.filter(
-        (p) => p.name.toLowerCase().includes(q) || p.shortDescription.toLowerCase().includes(q),
-      );
-    }
-    if (search.maxPrice) list = list.filter((p) => p.basePrice <= search.maxPrice!);
-    if (search.maxDays) list = list.filter((p) => p.productionDays <= search.maxDays!);
-
+    if (search.maxPrice) list = list.filter((p) => Number(p.base_price) <= search.maxPrice!);
+    if (search.maxDays) list = list.filter((p) => p.production_days <= search.maxDays!);
     switch (search.sort) {
-      case "price-asc": list.sort((a, b) => a.basePrice - b.basePrice); break;
-      case "price-desc": list.sort((a, b) => b.basePrice - a.basePrice); break;
-      case "new": list.sort((a, b) => Number(!!b.newRelease) - Number(!!a.newRelease)); break;
+      case "price-asc": list.sort((a, b) => Number(a.base_price) - Number(b.base_price)); break;
+      case "price-desc": list.sort((a, b) => Number(b.base_price) - Number(a.base_price)); break;
+      case "new": list.sort((a, b) => Number(!!b.new_release) - Number(!!a.new_release)); break;
       case "bestsellers":
       default: list.sort((a, b) => Number(!!b.bestseller) - Number(!!a.bestseller));
     }
     return list;
-  }, [search]);
+  }, [products, search.maxPrice, search.maxDays, search.sort]);
 
   const activeCategory = categories.find((c) => c.slug === search.category);
   const hasFilters = !!(search.category || search.q || search.maxPrice || search.maxDays);
@@ -84,7 +96,6 @@ function ProductsPage() {
 
       <section className="container-page py-10">
         <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
-          {/* Sidebar filtros */}
           <aside className="space-y-6">
             <div className="rounded-2xl border bg-card p-5">
               <div className="flex items-center justify-between">
@@ -142,13 +153,13 @@ function ProductsPage() {
               <div className="mt-5">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Preço máximo</p>
-                  <span className="text-xs font-semibold">R$ {search.maxPrice ?? 200}</span>
+                  <span className="text-xs font-semibold">R$ {search.maxPrice ?? 500}</span>
                 </div>
                 <Slider
                   className="mt-3"
-                  value={[search.maxPrice ?? 200]}
+                  value={[search.maxPrice ?? 500]}
                   min={5}
-                  max={200}
+                  max={500}
                   step={5}
                   onValueChange={([v]) => update({ maxPrice: v })}
                 />
@@ -163,7 +174,7 @@ function ProductsPage() {
                   className="mt-3"
                   value={[search.maxDays ?? 7]}
                   min={1}
-                  max={7}
+                  max={10}
                   step={1}
                   onValueChange={([v]) => update({ maxDays: v })}
                 />
@@ -171,7 +182,6 @@ function ProductsPage() {
             </div>
           </aside>
 
-          {/* Lista */}
           <div>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-muted-foreground">
@@ -215,7 +225,13 @@ function ProductsPage() {
               </div>
             )}
 
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={i} className="h-80 rounded-2xl" />
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="mt-12 rounded-2xl border border-dashed bg-card p-12 text-center">
                 <p className="font-semibold">Nenhum produto encontrado</p>
                 <p className="mt-1 text-sm text-muted-foreground">Tente ajustar os filtros.</p>
