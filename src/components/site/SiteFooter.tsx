@@ -1,0 +1,73 @@
+import { Link } from "@tanstack/react-router";
+import { Printer, Instagram, Facebook, Linkedin, Mail, Phone } from "lucide-react";
+
+export function SiteFooter() {
+  return (
+    <footer className="mt-24 border-t bg-surface-muted">
+      <div className="container-page grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold">
+            <span
+              className="grid h-9 w-9 place-items-center rounded-lg text-brand-foreground"
+              style={{ backgroundImage: "var(--gradient-brand)" }}
+            >
+              <Printer className="h-5 w-5" />
+            </span>
+            Gráfica<span className="text-brand">Pro</span>
+          </Link>
+          <p className="mt-4 max-w-xs text-sm text-muted-foreground">
+            Impressão online com qualidade profissional, prazos rápidos e atendimento especializado em todo o Brasil.
+          </p>
+          <div className="mt-5 flex gap-2">
+            {[Instagram, Facebook, Linkedin].map((Icon, i) => (
+              <a
+                key={i}
+                href="#"
+                aria-label="Rede social"
+                className="grid h-9 w-9 place-items-center rounded-full border bg-background text-muted-foreground transition-colors hover:border-brand hover:text-brand"
+              >
+                <Icon className="h-4 w-4" />
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-semibold">Produtos</h4>
+          <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+            <li><Link to="/produtos" className="hover:text-brand">Cartões de visita</Link></li>
+            <li><Link to="/produtos" className="hover:text-brand">Panfletos e flyers</Link></li>
+            <li><Link to="/produtos" className="hover:text-brand">Banners e faixas</Link></li>
+            <li><Link to="/produtos" className="hover:text-brand">Adesivos e etiquetas</Link></li>
+            <li><Link to="/produtos" className="hover:text-brand">Convites</Link></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-semibold">Institucional</h4>
+          <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+            <li><Link to="/como-funciona" className="hover:text-brand">Como funciona</Link></li>
+            <li><Link to="/orcamento" className="hover:text-brand">Orçamento sob medida</Link></li>
+            <li><a href="#" className="hover:text-brand">Política de privacidade</a></li>
+            <li><a href="#" className="hover:text-brand">Termos de uso</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-semibold">Contato</h4>
+          <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
+            <li className="flex items-center gap-2"><Phone className="h-4 w-4 text-brand" /> (11) 4000-0000</li>
+            <li className="flex items-center gap-2"><Mail className="h-4 w-4 text-brand" /> contato@graficapro.com.br</li>
+            <li className="text-xs">Seg a Sex, 9h às 18h</li>
+          </ul>
+        </div>
+      </div>
+      <div className="border-t">
+        <div className="container-page flex flex-col items-center justify-between gap-2 py-5 text-xs text-muted-foreground sm:flex-row">
+          <p>© {new Date().getFullYear()} GráficaPro. Todos os direitos reservados.</p>
+          <p>CNPJ 00.000.000/0001-00</p>
+        </div>
+      </div>
+    </footer>
+  );
+}
