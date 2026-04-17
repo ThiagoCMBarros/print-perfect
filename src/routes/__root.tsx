@@ -77,5 +77,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  return <Outlet />;
+  return (
+    <AuthProvider>
+      <CartProvider>
+        <Outlet />
+        <Toaster richColors closeButton position="top-right" />
+      </CartProvider>
+    </AuthProvider>
+  );
 }
