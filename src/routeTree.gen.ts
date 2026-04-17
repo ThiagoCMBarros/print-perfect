@@ -9,10 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as OrcamentoRouteImport } from './routes/orcamento'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContatoRouteImport } from './routes/contato'
 import { Route as ContaRouteImport } from './routes/conta'
 import { Route as ComoFuncionaRouteImport } from './routes/como-funciona'
@@ -33,6 +35,11 @@ import { Route as AdminClientesRouteImport } from './routes/admin.clientes'
 import { Route as AdminCategoriasRouteImport } from './routes/admin.categorias'
 import { Route as AdminProdutosIdRouteImport } from './routes/admin.produtos.$id'
 
+const SobreRoute = SobreRouteImport.update({
+  id: '/sobre',
+  path: '/sobre',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -51,6 +58,11 @@ const OrcamentoRoute = OrcamentoRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContatoRoute = ContatoRouteImport.update({
@@ -157,10 +169,12 @@ export interface FileRoutesByFullPath {
   '/como-funciona': typeof ComoFuncionaRoute
   '/conta': typeof ContaRouteWithChildren
   '/contato': typeof ContatoRoute
+  '/faq': typeof FaqRoute
   '/login': typeof LoginRoute
   '/orcamento': typeof OrcamentoRoute
   '/produtos': typeof ProdutosRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
+  '/sobre': typeof SobreRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -180,10 +194,12 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/como-funciona': typeof ComoFuncionaRoute
   '/contato': typeof ContatoRoute
+  '/faq': typeof FaqRoute
   '/login': typeof LoginRoute
   '/orcamento': typeof OrcamentoRoute
   '/produtos': typeof ProdutosRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
+  '/sobre': typeof SobreRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -206,10 +222,12 @@ export interface FileRoutesById {
   '/como-funciona': typeof ComoFuncionaRoute
   '/conta': typeof ContaRouteWithChildren
   '/contato': typeof ContatoRoute
+  '/faq': typeof FaqRoute
   '/login': typeof LoginRoute
   '/orcamento': typeof OrcamentoRoute
   '/produtos': typeof ProdutosRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
+  '/sobre': typeof SobreRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -233,10 +251,12 @@ export interface FileRouteTypes {
     | '/como-funciona'
     | '/conta'
     | '/contato'
+    | '/faq'
     | '/login'
     | '/orcamento'
     | '/produtos'
     | '/reset-password'
+    | '/sobre'
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/dashboard'
@@ -256,10 +276,12 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/como-funciona'
     | '/contato'
+    | '/faq'
     | '/login'
     | '/orcamento'
     | '/produtos'
     | '/reset-password'
+    | '/sobre'
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/dashboard'
@@ -281,10 +303,12 @@ export interface FileRouteTypes {
     | '/como-funciona'
     | '/conta'
     | '/contato'
+    | '/faq'
     | '/login'
     | '/orcamento'
     | '/produtos'
     | '/reset-password'
+    | '/sobre'
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/dashboard'
@@ -307,15 +331,24 @@ export interface RootRouteChildren {
   ComoFuncionaRoute: typeof ComoFuncionaRoute
   ContaRoute: typeof ContaRouteWithChildren
   ContatoRoute: typeof ContatoRoute
+  FaqRoute: typeof FaqRoute
   LoginRoute: typeof LoginRoute
   OrcamentoRoute: typeof OrcamentoRoute
   ProdutosRoute: typeof ProdutosRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SobreRoute: typeof SobreRoute
   PedidoIdRoute: typeof PedidoIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sobre': {
+      id: '/sobre'
+      path: '/sobre'
+      fullPath: '/sobre'
+      preLoaderRoute: typeof SobreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -342,6 +375,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contato': {
@@ -536,12 +576,23 @@ const rootRouteChildren: RootRouteChildren = {
   ComoFuncionaRoute: ComoFuncionaRoute,
   ContaRoute: ContaRouteWithChildren,
   ContatoRoute: ContatoRoute,
+  FaqRoute: FaqRoute,
   LoginRoute: LoginRoute,
   OrcamentoRoute: OrcamentoRoute,
   ProdutosRoute: ProdutosRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,
+  SobreRoute: SobreRoute,
   PedidoIdRoute: PedidoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

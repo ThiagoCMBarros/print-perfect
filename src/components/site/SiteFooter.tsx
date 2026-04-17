@@ -47,9 +47,10 @@ export function SiteFooter() {
           <h4 className="text-sm font-semibold">Institucional</h4>
           <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
             <li><Link to="/como-funciona" className="hover:text-brand">Como funciona</Link></li>
+            <li><Link to="/sobre" className="hover:text-brand">Sobre nós</Link></li>
+            <li><Link to="/faq" className="hover:text-brand">Perguntas frequentes</Link></li>
             <li><Link to="/orcamento" className="hover:text-brand">Orçamento sob medida</Link></li>
-            <li><a href="#" className="hover:text-brand">Política de privacidade</a></li>
-            <li><a href="#" className="hover:text-brand">Termos de uso</a></li>
+            <li><Link to="/contato" className="hover:text-brand">Contato</Link></li>
           </ul>
         </div>
 
