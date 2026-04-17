@@ -9,14 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as OrcamentoRouteImport } from './routes/orcamento'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ContatoRouteImport } from './routes/contato'
+import { Route as ContaRouteImport } from './routes/conta'
 import { Route as ComoFuncionaRouteImport } from './routes/como-funciona'
+import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as CarrinhoRouteImport } from './routes/carrinho'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ContaIndexRouteImport } from './routes/conta.index'
 import { Route as ProdutosSlugRouteImport } from './routes/produtos.$slug'
+import { Route as PedidoIdRouteImport } from './routes/pedido.$id'
+import { Route as ContaPedidosRouteImport } from './routes/conta.pedidos'
+import { Route as ContaEnderecosRouteImport } from './routes/conta.enderecos'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProdutosRoute = ProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
@@ -37,9 +50,24 @@ const ContatoRoute = ContatoRouteImport.update({
   path: '/contato',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContaRoute = ContaRouteImport.update({
+  id: '/conta',
+  path: '/conta',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComoFuncionaRoute = ComoFuncionaRouteImport.update({
   id: '/como-funciona',
   path: '/como-funciona',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarrinhoRoute = CarrinhoRouteImport.update({
+  id: '/carrinho',
+  path: '/carrinho',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -47,81 +75,159 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContaIndexRoute = ContaIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ContaRoute,
+} as any)
 const ProdutosSlugRoute = ProdutosSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => ProdutosRoute,
 } as any)
+const PedidoIdRoute = PedidoIdRouteImport.update({
+  id: '/pedido/$id',
+  path: '/pedido/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContaPedidosRoute = ContaPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => ContaRoute,
+} as any)
+const ContaEnderecosRoute = ContaEnderecosRouteImport.update({
+  id: '/enderecos',
+  path: '/enderecos',
+  getParentRoute: () => ContaRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/carrinho': typeof CarrinhoRoute
+  '/checkout': typeof CheckoutRoute
   '/como-funciona': typeof ComoFuncionaRoute
+  '/conta': typeof ContaRouteWithChildren
   '/contato': typeof ContatoRoute
   '/login': typeof LoginRoute
   '/orcamento': typeof OrcamentoRoute
   '/produtos': typeof ProdutosRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
+  '/conta/enderecos': typeof ContaEnderecosRoute
+  '/conta/pedidos': typeof ContaPedidosRoute
+  '/pedido/$id': typeof PedidoIdRoute
   '/produtos/$slug': typeof ProdutosSlugRoute
+  '/conta/': typeof ContaIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/carrinho': typeof CarrinhoRoute
+  '/checkout': typeof CheckoutRoute
   '/como-funciona': typeof ComoFuncionaRoute
   '/contato': typeof ContatoRoute
   '/login': typeof LoginRoute
   '/orcamento': typeof OrcamentoRoute
   '/produtos': typeof ProdutosRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
+  '/conta/enderecos': typeof ContaEnderecosRoute
+  '/conta/pedidos': typeof ContaPedidosRoute
+  '/pedido/$id': typeof PedidoIdRoute
   '/produtos/$slug': typeof ProdutosSlugRoute
+  '/conta': typeof ContaIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/carrinho': typeof CarrinhoRoute
+  '/checkout': typeof CheckoutRoute
   '/como-funciona': typeof ComoFuncionaRoute
+  '/conta': typeof ContaRouteWithChildren
   '/contato': typeof ContatoRoute
   '/login': typeof LoginRoute
   '/orcamento': typeof OrcamentoRoute
   '/produtos': typeof ProdutosRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
+  '/conta/enderecos': typeof ContaEnderecosRoute
+  '/conta/pedidos': typeof ContaPedidosRoute
+  '/pedido/$id': typeof PedidoIdRoute
   '/produtos/$slug': typeof ProdutosSlugRoute
+  '/conta/': typeof ContaIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/carrinho'
+    | '/checkout'
     | '/como-funciona'
+    | '/conta'
     | '/contato'
     | '/login'
     | '/orcamento'
     | '/produtos'
+    | '/reset-password'
+    | '/conta/enderecos'
+    | '/conta/pedidos'
+    | '/pedido/$id'
     | '/produtos/$slug'
+    | '/conta/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/carrinho'
+    | '/checkout'
     | '/como-funciona'
     | '/contato'
     | '/login'
     | '/orcamento'
     | '/produtos'
+    | '/reset-password'
+    | '/conta/enderecos'
+    | '/conta/pedidos'
+    | '/pedido/$id'
     | '/produtos/$slug'
+    | '/conta'
   id:
     | '__root__'
     | '/'
+    | '/carrinho'
+    | '/checkout'
     | '/como-funciona'
+    | '/conta'
     | '/contato'
     | '/login'
     | '/orcamento'
     | '/produtos'
+    | '/reset-password'
+    | '/conta/enderecos'
+    | '/conta/pedidos'
+    | '/pedido/$id'
     | '/produtos/$slug'
+    | '/conta/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CarrinhoRoute: typeof CarrinhoRoute
+  CheckoutRoute: typeof CheckoutRoute
   ComoFuncionaRoute: typeof ComoFuncionaRoute
+  ContaRoute: typeof ContaRouteWithChildren
   ContatoRoute: typeof ContatoRoute
   LoginRoute: typeof LoginRoute
   OrcamentoRoute: typeof OrcamentoRoute
   ProdutosRoute: typeof ProdutosRouteWithChildren
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  PedidoIdRoute: typeof PedidoIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/produtos': {
       id: '/produtos'
       path: '/produtos'
@@ -150,11 +256,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContatoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/conta': {
+      id: '/conta'
+      path: '/conta'
+      fullPath: '/conta'
+      preLoaderRoute: typeof ContaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/como-funciona': {
       id: '/como-funciona'
       path: '/como-funciona'
       fullPath: '/como-funciona'
       preLoaderRoute: typeof ComoFuncionaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carrinho': {
+      id: '/carrinho'
+      path: '/carrinho'
+      fullPath: '/carrinho'
+      preLoaderRoute: typeof CarrinhoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -164,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/conta/': {
+      id: '/conta/'
+      path: '/'
+      fullPath: '/conta/'
+      preLoaderRoute: typeof ContaIndexRouteImport
+      parentRoute: typeof ContaRoute
+    }
     '/produtos/$slug': {
       id: '/produtos/$slug'
       path: '/$slug'
@@ -171,8 +305,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProdutosSlugRouteImport
       parentRoute: typeof ProdutosRoute
     }
+    '/pedido/$id': {
+      id: '/pedido/$id'
+      path: '/pedido/$id'
+      fullPath: '/pedido/$id'
+      preLoaderRoute: typeof PedidoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conta/pedidos': {
+      id: '/conta/pedidos'
+      path: '/pedidos'
+      fullPath: '/conta/pedidos'
+      preLoaderRoute: typeof ContaPedidosRouteImport
+      parentRoute: typeof ContaRoute
+    }
+    '/conta/enderecos': {
+      id: '/conta/enderecos'
+      path: '/enderecos'
+      fullPath: '/conta/enderecos'
+      preLoaderRoute: typeof ContaEnderecosRouteImport
+      parentRoute: typeof ContaRoute
+    }
   }
 }
+
+interface ContaRouteChildren {
+  ContaEnderecosRoute: typeof ContaEnderecosRoute
+  ContaPedidosRoute: typeof ContaPedidosRoute
+  ContaIndexRoute: typeof ContaIndexRoute
+}
+
+const ContaRouteChildren: ContaRouteChildren = {
+  ContaEnderecosRoute: ContaEnderecosRoute,
+  ContaPedidosRoute: ContaPedidosRoute,
+  ContaIndexRoute: ContaIndexRoute,
+}
+
+const ContaRouteWithChildren = ContaRoute._addFileChildren(ContaRouteChildren)
 
 interface ProdutosRouteChildren {
   ProdutosSlugRoute: typeof ProdutosSlugRoute
@@ -188,11 +357,16 @@ const ProdutosRouteWithChildren = ProdutosRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CarrinhoRoute: CarrinhoRoute,
+  CheckoutRoute: CheckoutRoute,
   ComoFuncionaRoute: ComoFuncionaRoute,
+  ContaRoute: ContaRouteWithChildren,
   ContatoRoute: ContatoRoute,
   LoginRoute: LoginRoute,
   OrcamentoRoute: OrcamentoRoute,
   ProdutosRoute: ProdutosRouteWithChildren,
+  ResetPasswordRoute: ResetPasswordRoute,
+  PedidoIdRoute: PedidoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
