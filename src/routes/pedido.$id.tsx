@@ -81,7 +81,13 @@ function OrderPage() {
                 {order.order_items.map((it) => (
                   <li key={it.id} className="py-4">
                     <div className="flex items-center gap-4">
-                      <div className="grid h-14 w-14 place-items-center rounded-lg bg-surface-muted text-2xl">{it.product_image ?? "📦"}</div>
+                      <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-lg bg-surface-muted text-2xl">
+                        {it.product_image && /^(https?:|\/)/.test(it.product_image) ? (
+                          <img src={it.product_image} alt={it.product_name} className="h-full w-full object-cover" />
+                        ) : (
+                          <span>{it.product_image ?? "📦"}</span>
+                        )}
+                      </div>
                       <div className="flex-1">
                         <p className="text-sm font-semibold">{it.product_name}</p>
                         <p className="text-xs text-muted-foreground">{it.qty} un · {formatBRL(Number(it.unit_price))} / un</p>
