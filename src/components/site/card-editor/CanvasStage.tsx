@@ -112,10 +112,11 @@ export function CanvasStage({ template, background, layers, selectedId, onSelect
     <div className="rounded-xl border bg-surface-muted p-3">
       <div
         ref={stageRef}
-        onClick={() => onSelect(null)}
+        onPointerDown={(e) => { if (e.target === e.currentTarget || (e.target as HTMLElement).closest("[data-stage-bg]")) onSelect(null); }}
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
+        data-stage-bg
         className="relative overflow-hidden rounded-md border touch-none"
         style={{
           width: "100%",
