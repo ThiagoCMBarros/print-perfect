@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PenTool, Download, Save, Loader2, Type, ImagePlus } from "lucide-react";
@@ -18,37 +19,66 @@ import {
   type Layer,
   type LogoLayer,
   type TemplateKey,
+  type TemplateMeta,
   type TextLayer,
 } from "./types";
 
 type Props = {
   triggerLabel?: string;
+  triggerNode?: ReactNode;
+  dialogTitle?: string;
   defaultTemplate?: TemplateKey;
   categorySlug?: string;
   lockTemplate?: boolean;
+  hideTemplateSelector?: boolean;
+  /** Quando definido, sobrescreve as dimensões do template (útil para "custom"). */
+  customSize?: { w: number; h: number };
+  /** Permite ao usuário ajustar w/h quando template = "custom". */
+  allowResizeCanvas?: boolean;
+  defaultBackground?: Background;
+  /** Não cria as camadas de texto padrão do template. */
+  emptyDefault?: boolean;
   onSave?: (blob: Blob) => Promise<void> | void;
   enableSave?: boolean;
+  saveLabel?: string;
   /** Modo personalização: bloqueia adicionar texto, apenas edita campos existentes + logo. */
   customizationMode?: boolean;
 };
 
 export function CardEditor({
   triggerLabel = "Personalizar arte",
+  triggerNode,
+  dialogTitle = "Editor de arte",
   defaultTemplate,
   categorySlug,
   lockTemplate = false,
+  hideTemplateSelector = false,
+  customSize,
+  allowResizeCanvas = false,
+  defaultBackground,
+  emptyDefault = false,
   onSave,
   enableSave = false,
+  saveLabel = "Salvar arte e usar no pedido",
   customizationMode = false,
 }: Props) {
   const initial: TemplateKey =
     defaultTemplate ?? (categorySlug ? SLUG_TO_TEMPLATE[categorySlug] : undefined) ?? "card";
   const [open, setOpen] = useState(false);
   const [tpl, setTpl] = useState<TemplateKey>(initial);
-  const t = TEMPLATES[tpl];
+  const baseT = TEMPLATES[tpl];
+  const [customDims, setCustomDims] = useState<{ w: number; h: number }>(
+    customSize ?? { w: baseT.w, h: baseT.h },
+  );
+  const t: TemplateMeta = useMemo(() => {
+    if (tpl === "custom" || customSize) {
+      return { ...baseT, w: customDims.w, h: customDims.h };
+    }
+    return baseT;
+  }, [tpl, baseT, customDims, customSize]);
 
-  const [background, setBackground] = useState<Background>({ type: "solid", color: "#0f172a" });
-  const [layers, setLayers] = useState<Layer[]>(() => buildDefaultLayers(t));
+  const [background, setBackground] = useState<Background>(defaultBackground ?? { type: "solid", color: "#0f172a" });
+  const [layers, setLayers] = useState<Layer[]>(() => (emptyDefault ? [] : buildDefaultLayers(t)));
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const lastTpl = useRef(tpl);
