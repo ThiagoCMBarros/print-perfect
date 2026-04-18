@@ -4,15 +4,20 @@ import { Loader2, Package, Tags, Settings2, ShoppingBag, Shield, ArrowLeft, BarC
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { verifyAdmin } from "@/utils/admin.functions";
+
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw redirect({ to: "/login" });
-    // Validação server-side: previne bypass via DevTools (BUG-010).
-    const { isAdmin } = await verifyAdmin();
-    if (!isAdmin) throw redirect({ to: "/" });
+    // Checagem client-side com RLS (user_roles RLS permite SELECT do próprio user_id).
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", session.user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!data) throw redirect({ to: "/" });
   },
   component: AdminLayout,
 });
