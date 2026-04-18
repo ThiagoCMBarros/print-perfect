@@ -317,7 +317,6 @@ function ProductPage() {
                   categorySlug={product.categories?.slug}
                   lockTemplate
                   enableSave
-                  customizationMode
                   onSave={handleArtworkSave}
                 />
                 {artworkPath && (
