@@ -73,10 +73,26 @@ export function gradientCss(bg: Background): string {
 export function buildDefaultLayers(t: TemplateMeta): Layer[] {
   const padX = Math.round(t.w * 0.07);
   const titleY = Math.round(t.h * 0.28);
-  return [
-    { id: crypto.randomUUID(), type: "text", x: padX, y: titleY, w: t.w - padX * 2, h: Math.round(t.font.title * 1.3), rotation: 0, content: t.defaults.title, color: "#ffffff", fontSize: t.font.title, fontWeight: 800, fontFamily: FONT_FAMILIES[0].value, align: "left" },
-    { id: crypto.randomUUID(), type: "text", x: padX, y: titleY + Math.round(t.font.title * 1.25), w: t.w - padX * 2, h: Math.round(t.font.subtitle * 1.4), rotation: 0, content: t.defaults.subtitle, color: "#ffffff", fontSize: t.font.subtitle, fontWeight: 400, fontFamily: FONT_FAMILIES[0].value, align: "left" },
-    { id: crypto.randomUUID(), type: "text", x: padX, y: titleY + Math.round(t.font.title * 1.25 + t.font.subtitle * 2.4), w: t.w - padX * 2, h: Math.round(t.font.line * 1.4), rotation: 0, content: t.defaults.line1, color: "#ffffff", fontSize: t.font.line, fontWeight: 400, fontFamily: FONT_FAMILIES[0].value, align: "left" },
-    ...(t.defaults.line2 ? [{ id: crypto.randomUUID(), type: "text" as const, x: padX, y: titleY + Math.round(t.font.title * 1.25 + t.font.subtitle * 2.4 + t.font.line * 1.5), w: t.w - padX * 2, h: Math.round(t.font.line * 1.4), rotation: 0, content: t.defaults.line2, color: "#ffffff", fontSize: t.font.line, fontWeight: 400 as const, fontFamily: FONT_FAMILIES[0].value, align: "left" as const }] : []),
+  const base = (extra: Partial<TextLayer>): TextLayer => ({
+    id: crypto.randomUUID(),
+    type: "text",
+    x: padX, y: titleY,
+    w: t.w - padX * 2,
+    h: Math.round(t.font.line * 1.4),
+    rotation: 0,
+    content: "",
+    color: "#ffffff",
+    fontSize: t.font.line,
+    fontWeight: 400,
+    fontFamily: FONT_FAMILIES[0].value,
+    align: "left",
+    ...extra,
+  });
+  const layers: Layer[] = [
+    base({ y: titleY, h: Math.round(t.font.title * 1.3), content: t.defaults.title, fontSize: t.font.title, fontWeight: 800 }),
+    base({ y: titleY + Math.round(t.font.title * 1.25), h: Math.round(t.font.subtitle * 1.4), content: t.defaults.subtitle, fontSize: t.font.subtitle }),
+    base({ y: titleY + Math.round(t.font.title * 1.25 + t.font.subtitle * 2.4), content: t.defaults.line1 }),
   ];
+  if (t.defaults.line2) layers.push(base({ y: titleY + Math.round(t.font.title * 1.25 + t.font.subtitle * 2.4 + t.font.line * 1.5), content: t.defaults.line2 }));
+  return layers;
 }
