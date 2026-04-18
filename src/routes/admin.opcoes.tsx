@@ -19,9 +19,9 @@ export const Route = createFileRoute("/admin/opcoes")({
 
 type Product = Pick<Tables<"products">, "id" | "name">;
 type Opt = Tables<"product_options">;
-const TYPES: Enums<"option_type">[] = ["size", "material", "finish", "quantity"];
+const TYPES: Enums<"option_type">[] = ["size", "material", "finish", "quantity", "print_side"];
 const TYPE_LABEL: Record<Enums<"option_type">, string> = {
-  size: "Tamanho", material: "Material", finish: "Acabamento", quantity: "Quantidade",
+  size: "Tamanho", material: "Material", finish: "Acabamento", quantity: "Quantidade", print_side: "Impressão (frente/verso)",
 };
 
 function AdminOptions() {
