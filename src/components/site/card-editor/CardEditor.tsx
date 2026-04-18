@@ -212,6 +212,15 @@ export function CardEditor({
               )}
             </div>
 
+            <LayersPanel
+              layers={layers}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              onDuplicate={duplicateLayer}
+              onDelete={deleteLayer}
+              onReorder={reorderLayer}
+            />
+
             {/* Painel da camada selecionada OU controles de fundo */}
             {selected ? (
               <LayerControls
