@@ -16,7 +16,7 @@ type Cat = Tables<"categories">;
 function AdminCategories() {
   const [items, setItems] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(true);
-  const [draft, setDraft] = useState({ name: "", slug: "", icon: "Tag", sort_order: 0 });
+  const [draft, setDraft] = useState<{ name: string; slug: string; icon: string; sort_order: number; complexity: "simple" | "complex" }>({ name: "", slug: "", icon: "Tag", sort_order: 0, complexity: "simple" });
 
   async function load() {
     setLoading(true);
@@ -30,7 +30,7 @@ function AdminCategories() {
     if (!draft.name || !draft.slug) return toast.error("Nome e slug são obrigatórios.");
     const { error } = await supabase.from("categories").insert(draft);
     if (error) return toast.error(error.message);
-    setDraft({ name: "", slug: "", icon: "Tag", sort_order: 0 });
+    setDraft({ name: "", slug: "", icon: "Tag", sort_order: 0, complexity: "simple" });
     toast.success("Categoria criada");
     load();
   }
@@ -56,13 +56,24 @@ function AdminCategories() {
 
       <div className="mt-6 rounded-xl border bg-card p-4">
         <p className="text-sm font-semibold">Nova categoria</p>
-        <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_140px_100px_auto]">
+        <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_120px_140px_90px_auto]">
           <Input placeholder="Nome" value={draft.name} onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} />
           <Input placeholder="slug" value={draft.slug} onChange={(e) => setDraft((d) => ({ ...d, slug: e.target.value }))} />
           <Input placeholder="Ícone (lucide)" value={draft.icon} onChange={(e) => setDraft((d) => ({ ...d, icon: e.target.value }))} />
+          <select
+            className="h-9 rounded-md border bg-background px-2 text-sm"
+            value={draft.complexity}
+            onChange={(e) => setDraft((d) => ({ ...d, complexity: e.target.value as "simple" | "complex" }))}
+          >
+            <option value="simple">Simples (+1d/3000)</option>
+            <option value="complex">Complexa (+3d/3000)</option>
+          </select>
           <Input type="number" placeholder="Ordem" value={draft.sort_order} onChange={(e) => setDraft((d) => ({ ...d, sort_order: Number(e.target.value) }))} />
           <Button onClick={add}><Plus className="mr-1.5 h-4 w-4" /> Adicionar</Button>
         </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          A complexidade define o prazo de produção: simples (cartão, panfleto) +1 dia a cada 3000 un; complexa (caixas, banners grandes) +3 dias a cada 3000 un. Sempre +1 dia útil de postagem.
+        </p>
       </div>
 
       {loading ? (
@@ -83,15 +94,24 @@ function CategoryRow({ cat, onSave, onDelete }: { cat: Cat; onSave: (p: Partial<
   const [slug, setSlug] = useState(cat.slug);
   const [icon, setIcon] = useState(cat.icon ?? "");
   const [order, setOrder] = useState(cat.sort_order);
-  const dirty = name !== cat.name || slug !== cat.slug || icon !== (cat.icon ?? "") || order !== cat.sort_order;
+  const [complexity, setComplexity] = useState<"simple" | "complex">((cat as Cat & { complexity?: "simple" | "complex" }).complexity ?? "simple");
+  const dirty = name !== cat.name || slug !== cat.slug || icon !== (cat.icon ?? "") || order !== cat.sort_order || complexity !== ((cat as Cat & { complexity?: "simple" | "complex" }).complexity ?? "simple");
 
   return (
-    <div className="grid gap-2 rounded-xl border bg-card p-3 sm:grid-cols-[1fr_1fr_140px_100px_auto_auto]">
+    <div className="grid gap-2 rounded-xl border bg-card p-3 sm:grid-cols-[1fr_1fr_120px_140px_90px_auto_auto]">
       <Input value={name} onChange={(e) => setName(e.target.value)} />
       <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
       <Input value={icon} onChange={(e) => setIcon(e.target.value)} />
+      <select
+        className="h-9 rounded-md border bg-background px-2 text-sm"
+        value={complexity}
+        onChange={(e) => setComplexity(e.target.value as "simple" | "complex")}
+      >
+        <option value="simple">Simples</option>
+        <option value="complex">Complexa</option>
+      </select>
       <Input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} />
-      <Button size="sm" disabled={!dirty} onClick={() => onSave({ name, slug, icon: icon || null, sort_order: order })}>
+      <Button size="sm" disabled={!dirty} onClick={() => onSave({ name, slug, icon: icon || null, sort_order: order, complexity } as Partial<Cat>)}>
         <Save className="h-4 w-4" />
       </Button>
       <Button size="sm" variant="ghost" onClick={onDelete}>
