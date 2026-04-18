@@ -47,6 +47,7 @@ function ProductPage() {
   const [finishId, setFinishId] = useState<string | null>(null);
   const [quantityId, setQuantityId] = useState<string | null>(null);
   const [urgency, setUrgency] = useState<"standard" | "express">("standard");
+  const [customQty, setCustomQty] = useState<string>("");
   const [adding, setAdding] = useState(false);
   const [artworkPath, setArtworkPath] = useState<string | null>(null);
   const [artworkLabel, setArtworkLabel] = useState<string | null>(null);
