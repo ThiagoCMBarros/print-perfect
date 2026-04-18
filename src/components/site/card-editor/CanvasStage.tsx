@@ -1,6 +1,39 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Background, Layer, TemplateMeta } from "./types";
+import type { Background, Layer, TemplateMeta, TextLayer } from "./types";
 import { gradientCss } from "./types";
+
+function TextContent({ layer, onMeasured }: { layer: TextLayer; onMeasured: (h: number) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => onMeasured(el.scrollHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [layer.content, layer.fontSize, layer.fontWeight, layer.fontFamily, layer.w, onMeasured]);
+  return (
+    <div
+      ref={ref}
+      style={{
+        color: layer.color,
+        fontSize: layer.fontSize,
+        fontWeight: layer.fontWeight,
+        fontFamily: layer.fontFamily,
+        textAlign: layer.align,
+        lineHeight: 1.2,
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-word",
+        pointerEvents: "none",
+        width: "100%",
+        minHeight: "100%",
+      }}
+    >
+      {layer.content || "—"}
+    </div>
+  );
+}
 
 type Props = {
   template: TemplateMeta;
@@ -66,9 +99,15 @@ export function CanvasStage({ template, background, layers, selectedId, onSelect
     const dx = p.x - drag.current.startX;
     const dy = p.y - drag.current.startY;
     if (drag.current.kind === "move") {
+      // Permite arrastar parcialmente para fora (útil para logos com fundo transparente).
+      // Limita só pelo tamanho da própria camada para que ao menos uma borda permaneça visível.
+      const layer = layers.find((l) => l.id === drag.current!.id);
+      const lw = layer?.w ?? 0;
+      const lh = layer?.h ?? 0;
+      const margin = 20; // mantém pelo menos 20px dentro do canvas
       onUpdate(drag.current.id, {
-        x: Math.round(Math.max(0, Math.min(template.w - 10, drag.current.ox + dx))),
-        y: Math.round(Math.max(0, Math.min(template.h - 10, drag.current.oy + dy))),
+        x: Math.round(Math.max(-(lw - margin), Math.min(template.w - margin, drag.current.ox + dx))),
+        y: Math.round(Math.max(-(lh - margin), Math.min(template.h - margin, drag.current.oy + dy))),
       });
     } else {
       const d = drag.current;
@@ -141,23 +180,9 @@ export function CanvasStage({ template, background, layers, selectedId, onSelect
                 }}
               >
                 {layer.type === "text" ? (
-                  <div
-                    style={{
-                      color: layer.color,
-                      fontSize: layer.fontSize,
-                      fontWeight: layer.fontWeight,
-                      fontFamily: layer.fontFamily,
-                      textAlign: layer.align,
-                      lineHeight: 1.2,
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                      pointerEvents: "none",
-                      width: "100%",
-                      height: "100%",
-                    }}
-                  >
-                    {layer.content || "—"}
-                  </div>
+                  <TextContent layer={layer} onMeasured={(h) => {
+                    if (Math.abs(h - layer.h) > 1) onUpdate(layer.id, { h });
+                  }} />
                 ) : (
                   <img src={layer.src} alt="logo" draggable={false}
                     style={{ width: "100%", height: "100%", objectFit: "contain", opacity: layer.opacity, pointerEvents: "none" }} />
