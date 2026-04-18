@@ -122,6 +122,7 @@ function ProductPage() {
       unit_price: price.unit,
       total_price: price.total,
       qty: 1,
+      artwork_path: artworkPath,
     });
     setAdding(false);
     if (error) {
@@ -129,6 +130,60 @@ function ProductPage() {
     } else {
       toast.success("Adicionado ao carrinho!");
     }
+  }
+
+  // Salva PNG gerado pelo editor no bucket privado `cart-artworks`.
+  async function handleArtworkSave(blob: Blob) {
+    if (!user) {
+      toast.info("Faça login para salvar a arte.");
+      navigate({ to: "/login" });
+      return;
+    }
+    if (blob.size > 10 * 1024 * 1024) {
+      toast.error("Arte muito grande (máx 10MB).");
+      return;
+    }
+    const path = `${user.id}/${crypto.randomUUID()}.png`;
+    const { error } = await supabase.storage
+      .from("cart-artworks")
+      .upload(path, blob, { contentType: "image/png", upsert: false });
+    if (error) {
+      toast.error("Falha ao salvar arte: " + error.message);
+      return;
+    }
+    setArtworkPath(path);
+    setArtworkLabel("Arte personalizada salva ✓");
+    toast.success("Arte salva! Será anexada ao item ao adicionar no carrinho.");
+  }
+
+  // Upload de arquivo de arte enviado pelo cliente.
+  async function handleArtworkUpload(file: File) {
+    if (!user) {
+      toast.info("Faça login para enviar a arte.");
+      navigate({ to: "/login" });
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("Arquivo muito grande (máx 50MB).");
+      return;
+    }
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
+    const allowed = ["pdf", "ai", "psd", "jpg", "jpeg", "png", "svg", "eps", "cdr"];
+    if (!allowed.includes(ext)) {
+      toast.error("Formato não suportado. Use: " + allowed.join(", "));
+      return;
+    }
+    const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("cart-artworks")
+      .upload(path, file, { contentType: file.type || undefined, upsert: false });
+    if (error) {
+      toast.error("Falha ao enviar: " + error.message);
+      return;
+    }
+    setArtworkPath(path);
+    setArtworkLabel(file.name);
+    toast.success("Arquivo de arte anexado!");
   }
 
   return (
