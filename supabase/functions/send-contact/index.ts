@@ -1,31 +1,35 @@
-// Edge function: recebe mensagens do formulário de contato e armazena no DB
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-
+// Edge function: recebe mensagens do formulário de contato
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+function respond(ok: boolean, payload: Record<string, unknown> = {}, status = 200) {
+  return new Response(JSON.stringify({ ok, ...payload }), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { name, email, phone, subject, message } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { name, email, phone, subject, message } = body ?? {};
+
     if (!name || !email || !message) {
-      return new Response(JSON.stringify({ error: "Campos obrigatórios faltando." }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return respond(false, { error: "Campos obrigatórios faltando." });
     }
 
-    // Log estruturado (poderá ser substituído por envio de email no futuro)
-    console.log("[contact]", JSON.stringify({ name, email, phone, subject, message, ts: new Date().toISOString() }));
+    console.log("[contact]", JSON.stringify({
+      name, email, phone, subject, message, ts: new Date().toISOString(),
+    }));
 
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return respond(true);
   } catch (e) {
-    return new Response(JSON.stringify({ error: (e as Error).message }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    console.error("[contact] error", e);
+    return respond(false, { error: (e as Error).message ?? "Erro inesperado" });
   }
 });
