@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
+import { LogoEditorDialog } from "@/components/admin/LogoEditorDialog";
 
 export const Route = createFileRoute("/admin/personalizacao")({
   component: AdminPersonalizacao,
@@ -199,9 +200,9 @@ function AdminPersonalizacao() {
                       <Input value={draft[k] ?? ""} onChange={(e) => setVal(section.category, f.key, e.target.value)} className="font-mono" />
                     </div>
                   ) : f.type === "image" ? (
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-3">
                       {draft[k] ? (
-                        <img src={draft[k]} alt={f.label} className="h-16 w-16 rounded border bg-white object-contain p-1" />
+                        <img src={draft[k]} alt={f.label} className="h-16 w-16 rounded border bg-[repeating-conic-gradient(#e5e7eb_0%_25%,#ffffff_0%_50%)] bg-[length:12px_12px] object-contain p-1" />
                       ) : (
                         <div className="flex h-16 w-16 items-center justify-center rounded border bg-muted text-xs text-muted-foreground">
                           sem imagem
@@ -221,19 +222,26 @@ function AdminPersonalizacao() {
                       <Button
                         type="button"
                         variant="outline"
+                        size="sm"
                         onClick={() => (isLogo ? logoInputRef : faviconInputRef).current?.click()}
                         disabled={uploading === (isLogo ? "logo_url" : "favicon_url")}
                       >
                         {uploading === (isLogo ? "logo_url" : "favicon_url") ? (
                           <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando…</>
                         ) : (
-                          <><Upload className="mr-2 h-4 w-4" /> {draft[k] ? "Trocar imagem" : "Enviar imagem"}</>
+                          <><Upload className="mr-2 h-4 w-4" /> {draft[k] ? "Trocar arquivo" : "Enviar arquivo"}</>
                         )}
                       </Button>
+                      <LogoEditorDialog
+                        target={isLogo ? "logo_url" : "favicon_url"}
+                        currentUrl={draft[k]}
+                        onUploaded={(url) => setVal("branding", isLogo ? "logo_url" : "favicon_url", url)}
+                      />
                       {draft[k] && (
                         <Button
                           type="button"
                           variant="ghost"
+                          size="sm"
                           onClick={() => setVal("branding", isLogo ? "logo_url" : "favicon_url", "")}
                         >
                           Remover
