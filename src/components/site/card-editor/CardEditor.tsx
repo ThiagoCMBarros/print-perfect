@@ -43,6 +43,8 @@ type Props = {
   saveLabel?: string;
   /** Modo personalização: bloqueia adicionar texto, apenas edita campos existentes + logo. */
   customizationMode?: boolean;
+  /** URL de uma imagem para pré-carregar como camada inicial ao abrir o editor. */
+  initialImageUrl?: string;
 };
 
 export function CardEditor({
