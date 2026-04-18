@@ -98,6 +98,9 @@ function CartPage() {
               {shipping > 0 && (
                 <p className="text-xs text-muted-foreground">Faltam {formatBRL(250 - subtotal)} para frete grátis.</p>
               )}
+              <p className="pt-1 text-xs text-muted-foreground">
+                Prazo final será calculado no checkout (depende do CEP).
+              </p>
             </div>
             <div className="mt-4 flex justify-between border-t pt-4 text-lg font-bold">
               <span>Total</span><span className="text-brand">{formatBRL(total)}</span>
