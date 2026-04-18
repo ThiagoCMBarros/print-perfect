@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { ProductCard } from "@/components/site/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchCategories, fetchProducts, type DBCategory } from "@/lib/catalog";
+import { type DBCategory } from "@/lib/catalog";
+import { getCachedCategories, getCachedProducts } from "@/lib/catalog-cache";
 import type { Tables } from "@/integrations/supabase/types";
 import heroImg from "@/assets/hero-printing.jpg";
 
@@ -60,7 +61,7 @@ function HomePage() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([fetchCategories(), fetchProducts()])
+    Promise.all([getCachedCategories(), getCachedProducts()])
       .then(([cats, prods]) => {
         if (cancelled) return;
         setCategories(cats);
