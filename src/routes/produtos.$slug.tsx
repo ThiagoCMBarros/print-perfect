@@ -252,7 +252,7 @@ function ProductPage() {
                       <p className="text-xs text-muted-foreground">
                         {u === "standard"
                           ? `${product.production_days} dias úteis`
-                          : `${Math.max(1, Math.ceil(product.production_days / 2))} dias (+35%)`}
+                          : `${Math.max(1, Math.ceil(product.production_days / 2))} dias úteis`}
                       </p>
                     </div>
                   </Label>
@@ -301,6 +301,7 @@ function ProductPage() {
                 </p>
                 <CardEditor
                   categorySlug={product.categories?.slug}
+                  lockTemplate
                   enableSave
                   onSave={handleArtworkSave}
                 />

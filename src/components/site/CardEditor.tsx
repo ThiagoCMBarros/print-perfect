@@ -156,7 +156,7 @@ export function CardEditor({ triggerLabel = "Personalizar arte", defaultTemplate
           <div className="space-y-3">
             <div>
               <Label className="text-xs">Template</Label>
-              <Select value={tpl} onValueChange={(v) => setTpl(v as TemplateKey)}>
+              <Select value={tpl} onValueChange={(v) => setTpl(v as TemplateKey)} disabled={lockTemplate}>
                 <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {(Object.keys(TEMPLATES) as TemplateKey[]).map((k) => (
@@ -164,6 +164,9 @@ export function CardEditor({ triggerLabel = "Personalizar arte", defaultTemplate
                   ))}
                 </SelectContent>
               </Select>
+              {lockTemplate && (
+                <p className="mt-1 text-[10px] text-muted-foreground">Editando o produto selecionado.</p>
+              )}
             </div>
             <div>
               <Label className="text-xs">Cor de fundo</Label>
