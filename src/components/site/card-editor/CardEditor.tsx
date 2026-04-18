@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PenTool, Download, Save, Loader2, Type, ImagePlus } from "lucide-react";
+import { PenTool, Download, Save, Loader2, Type, ImagePlus, RotateCw } from "lucide-react";
 import { CanvasStage } from "./CanvasStage";
 import { LayerControls } from "./LayerControls";
 import { BackgroundControls } from "./BackgroundControls";
@@ -73,12 +73,13 @@ export function CardEditor({
   const [customDims, setCustomDims] = useState<{ w: number; h: number }>(
     customSize ?? { w: baseT.w, h: baseT.h },
   );
+  const [rotated, setRotated] = useState(false);
   const t: TemplateMeta = useMemo(() => {
-    if (tpl === "custom" || customSize) {
+    if (tpl === "custom" || customSize || rotated) {
       return { ...baseT, w: customDims.w, h: customDims.h };
     }
     return baseT;
-  }, [tpl, baseT, customDims, customSize]);
+  }, [tpl, baseT, customDims, customSize, rotated]);
 
   const [background, setBackground] = useState<Background>(defaultBackground ?? { type: "solid", color: "#0f172a" });
   const [layers, setLayers] = useState<Layer[]>(() => (emptyDefault ? [] : buildDefaultLayers(t)));
@@ -289,7 +290,7 @@ export function CardEditor({
                     min={64}
                     max={4096}
                     value={customDims.w}
-                    onChange={(e) => setCustomDims((d) => ({ ...d, w: Math.max(64, Math.min(4096, Number(e.target.value) || 64)) }))}
+                    onChange={(e) => { setRotated(true); setCustomDims((d) => ({ ...d, w: Math.max(64, Math.min(4096, Number(e.target.value) || 64)) })); }}
                     className="mt-1 h-8 text-xs"
                   />
                 </div>
@@ -300,12 +301,27 @@ export function CardEditor({
                     min={64}
                     max={4096}
                     value={customDims.h}
-                    onChange={(e) => setCustomDims((d) => ({ ...d, h: Math.max(64, Math.min(4096, Number(e.target.value) || 64)) }))}
+                    onChange={(e) => { setRotated(true); setCustomDims((d) => ({ ...d, h: Math.max(64, Math.min(4096, Number(e.target.value) || 64)) })); }}
                     className="mt-1 h-8 text-xs"
                   />
                 </div>
               </div>
             )}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => {
+                setCustomDims({ w: t.h, h: t.w });
+                setRotated(true);
+              }}
+            >
+              <RotateCw className="mr-1.5 h-3.5 w-3.5" />
+              Girar orientação ({t.w}×{t.h} → {t.h}×{t.w})
+            </Button>
+
 
             <LayersPanel
               layers={layers}
