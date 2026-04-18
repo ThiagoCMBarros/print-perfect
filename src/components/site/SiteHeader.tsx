@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Search, ShoppingCart, User, Menu, Printer, LogOut, Package, Shield } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, Printer, LogOut, Package, Shield, Sun, Moon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -25,6 +26,7 @@ export function SiteHeader() {
   const { user, signOut } = useAuth();
   const { count } = useCart();
   const { isAdmin } = useIsAdmin();
+  const { theme, toggle } = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => { setMounted(true); }, []);
@@ -98,6 +100,16 @@ export function SiteHeader() {
               <Link to="/login"><User className="mr-1.5 h-4 w-4" /> Entrar</Link>
             </Button>
           )}
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggle}
+            aria-label={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+            title={theme === "dark" ? "Tema claro" : "Tema escuro"}
+          >
+            {mounted && theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
 
           <Button variant="ghost" size="icon" className="relative" aria-label="Carrinho" asChild>
             <Link to="/carrinho">
