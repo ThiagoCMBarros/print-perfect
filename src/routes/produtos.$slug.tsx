@@ -36,6 +36,7 @@ export const Route = createFileRoute("/produtos/$slug")({
 function ProductPage() {
   const { slug } = Route.useParams();
   const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const { add } = useCart();
   const navigate = useNavigate();
 
