@@ -21,7 +21,7 @@ const searchSchema = z.object({
   maxDays: z.number().optional(),
 });
 
-export const Route = createFileRoute("/produtos")({
+export const Route = createFileRoute("/produtos/")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [

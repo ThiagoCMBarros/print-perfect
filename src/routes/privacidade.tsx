@@ -12,7 +12,7 @@ export const Route = createFileRoute("/privacidade")({
     <SiteLayout>
       <article className="container-page max-w-3xl py-16 prose prose-slate dark:prose-invert">
         <h1 className="font-display text-3xl font-bold sm:text-4xl">Política de Privacidade</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Atualizada em {new Date().toLocaleDateString("pt-BR")}</p>
+        <p className="mt-2 text-sm text-muted-foreground">Atualizada em 18/04/2026</p>
 
         <section className="mt-8 space-y-6 text-sm leading-relaxed text-foreground/90">
           <div>
