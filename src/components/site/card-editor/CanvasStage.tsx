@@ -66,9 +66,15 @@ export function CanvasStage({ template, background, layers, selectedId, onSelect
     const dx = p.x - drag.current.startX;
     const dy = p.y - drag.current.startY;
     if (drag.current.kind === "move") {
+      // Permite arrastar parcialmente para fora (útil para logos com fundo transparente).
+      // Limita só pelo tamanho da própria camada para que ao menos uma borda permaneça visível.
+      const layer = layers.find((l) => l.id === drag.current!.id);
+      const lw = layer?.w ?? 0;
+      const lh = layer?.h ?? 0;
+      const margin = 20; // mantém pelo menos 20px dentro do canvas
       onUpdate(drag.current.id, {
-        x: Math.round(Math.max(0, Math.min(template.w - 10, drag.current.ox + dx))),
-        y: Math.round(Math.max(0, Math.min(template.h - 10, drag.current.oy + dy))),
+        x: Math.round(Math.max(-(lw - margin), Math.min(template.w - margin, drag.current.ox + dx))),
+        y: Math.round(Math.max(-(lh - margin), Math.min(template.h - margin, drag.current.oy + dy))),
       });
     } else {
       const d = drag.current;
