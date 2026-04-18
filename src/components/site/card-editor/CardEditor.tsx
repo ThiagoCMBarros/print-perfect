@@ -43,6 +43,8 @@ type Props = {
   saveLabel?: string;
   /** Modo personalização: bloqueia adicionar texto, apenas edita campos existentes + logo. */
   customizationMode?: boolean;
+  /** URL de uma imagem para pré-carregar como camada inicial ao abrir o editor. */
+  initialImageUrl?: string;
 };
 
 export function CardEditor({
@@ -61,6 +63,7 @@ export function CardEditor({
   enableSave = false,
   saveLabel = "Salvar arte e usar no pedido",
   customizationMode = false,
+  initialImageUrl,
 }: Props) {
   const initial: TemplateKey =
     defaultTemplate ?? (categorySlug ? SLUG_TO_TEMPLATE[categorySlug] : undefined) ?? "card";
@@ -90,6 +93,37 @@ export function CardEditor({
     if (!emptyDefault) setLayers(buildDefaultLayers(TEMPLATES[tpl]));
     setSelectedId(null);
   }, [tpl, emptyDefault]);
+
+  // Pré-carrega a imagem inicial (logo/favicon atual) ao abrir o dialog
+  const loadedInitialFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!open || !initialImageUrl) return;
+    if (loadedInitialFor.current === initialImageUrl) return;
+    loadedInitialFor.current = initialImageUrl;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const maxW = t.w * 0.9;
+      const maxH = t.h * 0.9;
+      const ratio = Math.min(maxW / img.width, maxH / img.height, 1);
+      const w = Math.round(img.width * ratio);
+      const h = Math.round(img.height * ratio);
+      const newLayer: LogoLayer = {
+        id: crypto.randomUUID(),
+        type: "logo",
+        x: Math.round((t.w - w) / 2),
+        y: Math.round((t.h - h) / 2),
+        w, h,
+        rotation: 0,
+        src: initialImageUrl,
+        opacity: 1,
+      };
+      setLayers((prev) => [...prev, newLayer]);
+      setSelectedId(newLayer.id);
+    };
+    img.onerror = () => { loadedInitialFor.current = null; };
+    img.src = initialImageUrl;
+  }, [open, initialImageUrl, t.w, t.h]);
 
   const selected = useMemo(() => layers.find((l) => l.id === selectedId) ?? null, [layers, selectedId]);
 
