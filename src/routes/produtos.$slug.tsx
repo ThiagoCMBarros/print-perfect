@@ -18,6 +18,7 @@ import {
 } from "@/lib/catalog";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/produtos/$slug")({
   head: ({ params }) => ({
@@ -45,6 +46,8 @@ function ProductPage() {
   const [quantityId, setQuantityId] = useState<string | null>(null);
   const [urgency, setUrgency] = useState<"standard" | "express">("standard");
   const [adding, setAdding] = useState(false);
+  const [artworkPath, setArtworkPath] = useState<string | null>(null);
+  const [artworkLabel, setArtworkLabel] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -119,6 +122,7 @@ function ProductPage() {
       unit_price: price.unit,
       total_price: price.total,
       qty: 1,
+      artwork_path: artworkPath,
     });
     setAdding(false);
     if (error) {
@@ -126,6 +130,60 @@ function ProductPage() {
     } else {
       toast.success("Adicionado ao carrinho!");
     }
+  }
+
+  // Salva PNG gerado pelo editor no bucket privado `cart-artworks`.
+  async function handleArtworkSave(blob: Blob) {
+    if (!user) {
+      toast.info("Faça login para salvar a arte.");
+      navigate({ to: "/login" });
+      return;
+    }
+    if (blob.size > 10 * 1024 * 1024) {
+      toast.error("Arte muito grande (máx 10MB).");
+      return;
+    }
+    const path = `${user.id}/${crypto.randomUUID()}.png`;
+    const { error } = await supabase.storage
+      .from("cart-artworks")
+      .upload(path, blob, { contentType: "image/png", upsert: false });
+    if (error) {
+      toast.error("Falha ao salvar arte: " + error.message);
+      return;
+    }
+    setArtworkPath(path);
+    setArtworkLabel("Arte personalizada salva ✓");
+    toast.success("Arte salva! Será anexada ao item ao adicionar no carrinho.");
+  }
+
+  // Upload de arquivo de arte enviado pelo cliente.
+  async function handleArtworkUpload(file: File) {
+    if (!user) {
+      toast.info("Faça login para enviar a arte.");
+      navigate({ to: "/login" });
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("Arquivo muito grande (máx 50MB).");
+      return;
+    }
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
+    const allowed = ["pdf", "ai", "psd", "jpg", "jpeg", "png", "svg", "eps", "cdr"];
+    if (!allowed.includes(ext)) {
+      toast.error("Formato não suportado. Use: " + allowed.join(", "));
+      return;
+    }
+    const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("cart-artworks")
+      .upload(path, file, { contentType: file.type || undefined, upsert: false });
+    if (error) {
+      toast.error("Falha ao enviar: " + error.message);
+      return;
+    }
+    setArtworkPath(path);
+    setArtworkLabel(file.name);
+    toast.success("Arquivo de arte anexado!");
   }
 
   return (
@@ -222,16 +280,30 @@ function ProductPage() {
                 <TabsTrigger value="help"><MessageCircle className="mr-1.5 h-3.5 w-3.5" /> Ajuda</TabsTrigger>
               </TabsList>
               <TabsContent value="upload" className="mt-3 rounded-xl border-2 border-dashed bg-background p-6 text-center">
-                <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
-                <p className="mt-2 text-sm font-medium">Arraste sua arte ou clique para selecionar</p>
-                <p className="text-xs text-muted-foreground">PDF, AI, PSD, JPG, PNG · até 50MB</p>
+                <label className="block cursor-pointer">
+                  <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
+                  <p className="mt-2 text-sm font-medium">
+                    {artworkLabel ?? "Arraste sua arte ou clique para selecionar"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">PDF, AI, PSD, JPG, PNG · até 50MB</p>
+                  <input
+                    type="file"
+                    accept=".pdf,.ai,.psd,.jpg,.jpeg,.png,.svg,.eps,.cdr"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleArtworkUpload(e.target.files[0])}
+                  />
+                </label>
               </TabsContent>
               <TabsContent value="editor" className="mt-3 rounded-xl bg-background p-5 text-sm">
                 <p className="font-medium">Editor online</p>
                 <p className="mb-3 mt-1 text-xs text-muted-foreground">
-                  Personalize sua arte com texto, logo e cores. Baixe o PNG em alta resolução e envie no pedido.
+                  Personalize sua arte e salve direto no pedido — ou baixe o PNG em alta resolução.
                 </p>
-                <CardEditor categorySlug={product.categories?.slug} />
+                <CardEditor
+                  categorySlug={product.categories?.slug}
+                  enableSave
+                  onSave={handleArtworkSave}
+                />
               </TabsContent>
               <TabsContent value="help" className="mt-3 rounded-xl bg-background p-5 text-sm">
                 <p className="font-medium">Solicite ajuda com a arte</p>

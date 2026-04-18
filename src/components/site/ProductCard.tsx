@@ -21,7 +21,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         className="relative grid aspect-[4/3] place-items-center overflow-hidden"
         style={{ backgroundImage: "var(--gradient-hero)" }}
       >
-        {product.image ? (
+        {product.image && /^(https?:|\/)/.test(product.image) ? (
           <img
             src={product.image}
             alt={product.name}
@@ -29,7 +29,10 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <ImageIcon className="h-16 w-16 text-brand/30" />
+          <div className="flex flex-col items-center gap-2 text-brand/40">
+            <ImageIcon className="h-16 w-16" />
+            <span className="text-[10px] uppercase tracking-wider">Sem imagem</span>
+          </div>
         )}
         <div className="absolute left-3 top-3 flex gap-1.5">
           {product.bestseller && (

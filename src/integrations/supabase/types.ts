@@ -75,6 +75,7 @@ export type Database = {
       }
       cart_items: {
         Row: {
+          artwork_path: string | null
           created_at: string
           finish_option_id: string | null
           id: string
@@ -89,6 +90,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          artwork_path?: string | null
           created_at?: string
           finish_option_id?: string | null
           id?: string
@@ -103,6 +105,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          artwork_path?: string | null
           created_at?: string
           finish_option_id?: string | null
           id?: string

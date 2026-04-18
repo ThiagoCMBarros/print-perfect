@@ -4,13 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PenTool, Download, Upload as UploadIcon } from "lucide-react";
+import { PenTool, Download, Upload as UploadIcon, Save, Loader2 } from "lucide-react";
 
 type Props = {
   triggerLabel?: string;
   defaultTemplate?: TemplateKey;
   categorySlug?: string;
-  onExport?: (dataUrl: string) => void;
+  /** Recebe o blob PNG quando o usuário aciona "Salvar arte". */
+  onSave?: (blob: Blob) => Promise<void> | void;
+  /** Quando true, mostra o botão "Salvar arte" no editor. */
+  enableSave?: boolean;
 };
 
 const SLUG_TO_TEMPLATE: Record<string, TemplateKey> = {
@@ -28,12 +31,9 @@ type TemplateKey = "card" | "flyer" | "banner" | "sticker";
 
 const TEMPLATES: Record<TemplateKey, {
   label: string;
-  /** Largura x altura em px (300dpi). */
   w: number; h: number;
-  /** Tamanho real para o usuário ver. */
   realSize: string;
   defaults: { title: string; subtitle: string; line1: string; line2: string };
-  /** Tamanhos de fonte em px no canvas. */
   font: { title: number; subtitle: number; line: number };
 }> = {
   card:    { label: "Cartão de visita 9×5cm", w: 1063, h: 591, realSize: "9×5 cm",  defaults: { title: "Seu Nome", subtitle: "Cargo / Profissão", line1: "(11) 99999-9999", line2: "contato@empresa.com.br" }, font: { title: 64, subtitle: 32, line: 28 } },
@@ -42,11 +42,7 @@ const TEMPLATES: Record<TemplateKey, {
   sticker: { label: "Adesivo 10×10cm",          w: 1181, h: 1181, realSize: "10×10 cm", defaults: { title: "OBRIGADO!", subtitle: "Pela preferência", line1: "@suaempresa", line2: "" }, font: { title: 130, subtitle: 56, line: 42 } },
 };
 
-/**
- * Editor MVP — suporta cartão, flyer, banner e adesivo.
- * Permite cor de fundo, logo, e 4 campos de texto. Exporta PNG em alta resolução.
- */
-export function CardEditor({ triggerLabel = "Personalizar arte", defaultTemplate, categorySlug, onExport }: Props) {
+export function CardEditor({ triggerLabel = "Personalizar arte", defaultTemplate, categorySlug, onSave, enableSave = false }: Props) {
   const initial: TemplateKey = defaultTemplate ?? (categorySlug ? SLUG_TO_TEMPLATE[categorySlug] : undefined) ?? "card";
   const [open, setOpen] = useState(false);
   const [tpl, setTpl] = useState<TemplateKey>(initial);
@@ -59,8 +55,8 @@ export function CardEditor({ triggerLabel = "Personalizar arte", defaultTemplate
   const [line1, setLine1] = useState(t.defaults.line1);
   const [line2, setLine2] = useState(t.defaults.line2);
   const [logo, setLogo] = useState<HTMLImageElement | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  // Quando troca template, repõe defaults
   useEffect(() => {
     const nt = TEMPLATES[tpl];
     setTitle(nt.defaults.title);
@@ -78,17 +74,14 @@ export function CardEditor({ triggerLabel = "Personalizar arte", defaultTemplate
     const W = t.w, H = t.h;
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
-    // barra lateral decorativa
     ctx.fillStyle = "rgba(255,255,255,0.08)";
     ctx.fillRect(0, 0, Math.max(18, Math.floor(W * 0.018)), H);
-    // logo no canto superior direito
     if (logo) {
       const maxW = W * 0.22, maxH = H * 0.22;
       const ratio = Math.min(maxW / logo.width, maxH / logo.height);
       const lw = logo.width * ratio, lh = logo.height * ratio;
       ctx.drawImage(logo, W - lw - W * 0.06, H * 0.06, lw, lh);
     }
-    // texto
     const padX = W * 0.07;
     let y = H * 0.28;
     ctx.fillStyle = text;
@@ -120,9 +113,24 @@ export function CardEditor({ triggerLabel = "Personalizar arte", defaultTemplate
     const c = canvasRef.current;
     if (!c) return;
     const url = c.toDataURL("image/png");
-    onExport?.(url);
     const a = document.createElement("a");
     a.href = url; a.download = `arte-${tpl}.png`; a.click();
+  }
+
+  async function handleSave() {
+    if (!onSave) return;
+    const c = canvasRef.current;
+    if (!c) return;
+    setSaving(true);
+    try {
+      const blob: Blob = await new Promise((resolve, reject) =>
+        c.toBlob((b) => b ? resolve(b) : reject(new Error("falha ao gerar PNG")), "image/png"),
+      );
+      await onSave(blob);
+      setOpen(false);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -183,7 +191,13 @@ export function CardEditor({ triggerLabel = "Personalizar arte", defaultTemplate
                   onChange={(e) => e.target.files?.[0] && handleLogo(e.target.files[0])} />
               </label>
             </div>
-            <Button className="w-full" onClick={exportPng}>
+            {enableSave && onSave && (
+              <Button className="w-full" onClick={handleSave} disabled={saving}>
+                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                Salvar arte e usar no pedido
+              </Button>
+            )}
+            <Button variant="outline" className="w-full" onClick={exportPng}>
               <Download className="mr-2 h-4 w-4" /> Baixar PNG
             </Button>
           </div>
