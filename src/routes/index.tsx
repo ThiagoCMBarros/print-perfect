@@ -58,8 +58,12 @@ function HomePage() {
   const [categories, setCategories] = useState<DBCategory[]>([]);
   const [featured, setFeatured] = useState<Tables<"products">[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     let cancelled = false;
     Promise.all([getCachedCategories(), getCachedProducts()])
       .then(([cats, prods]) => {
@@ -72,9 +76,10 @@ function HomePage() {
         );
         setFeatured(sorted.slice(0, 4));
       })
-      .finally(() => !cancelled && setLoading(false));
+      .catch((err) => console.error("[index] fetch error", err))
+      .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, []);
+  }, [mounted]);
 
   return (
     <SiteLayout>
