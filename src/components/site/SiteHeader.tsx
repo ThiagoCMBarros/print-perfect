@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Search, ShoppingCart, User, Menu, Printer, LogOut, Package, Shield } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -21,10 +21,13 @@ const navLinks = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { user, signOut } = useAuth();
   const { count } = useCart();
   const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
+
+  useEffect(() => { setMounted(true); }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
@@ -60,7 +63,9 @@ export function SiteHeader() {
         </div>
 
         <div className="ml-auto flex items-center gap-1 md:ml-0">
-          {user ? (
+          {!mounted ? (
+            <div className="hidden h-9 w-24 sm:block" aria-hidden />
+          ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
@@ -97,7 +102,7 @@ export function SiteHeader() {
           <Button variant="ghost" size="icon" className="relative" aria-label="Carrinho" asChild>
             <Link to="/carrinho">
               <ShoppingCart className="h-5 w-5" />
-              {count > 0 && (
+              {mounted && count > 0 && (
                 <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[10px] font-bold text-brand-foreground">
                   {count}
                 </span>
@@ -118,7 +123,7 @@ export function SiteHeader() {
                     {l.label}
                   </Link>
                 ))}
-                {user ? (
+                {mounted && (user ? (
                   <>
                     <Link to="/conta" onClick={() => setOpen(false)} className="rounded-md px-3 py-3 text-base font-medium hover:bg-accent">Minha conta</Link>
                     <Link to="/conta/pedidos" onClick={() => setOpen(false)} className="rounded-md px-3 py-3 text-base font-medium hover:bg-accent">Meus pedidos</Link>
@@ -126,7 +131,7 @@ export function SiteHeader() {
                   </>
                 ) : (
                   <Link to="/login" onClick={() => setOpen(false)} className="mt-2 rounded-md px-3 py-3 text-base font-medium hover:bg-accent">Entrar / Cadastrar</Link>
-                )}
+                ))}
               </div>
             </SheetContent>
           </Sheet>
