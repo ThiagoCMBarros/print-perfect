@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const signUpSchema = z.object({
   fullName: z.string().trim().min(2, "Nome muito curto").max(100),
@@ -52,7 +53,25 @@ function AuthPage() {
     setLoading(false);
     if (error) return toast.error(error.includes("Invalid") ? "E-mail ou senha incorretos" : error);
     toast.success("Bem-vindo de volta!");
-    navigate({ to: search.redirect || "/" });
+    // Se houver redirect explícito, respeita. Caso contrário, admin vai para /admin, demais para /.
+    if (search.redirect && search.redirect !== "/") {
+      navigate({ to: search.redirect });
+      return;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: roleRow } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (roleRow) {
+        navigate({ to: "/admin" });
+        return;
+      }
+    }
+    navigate({ to: "/" });
   };
 
   const handleSignup = async (e: React.FormEvent) => {
