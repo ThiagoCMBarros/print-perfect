@@ -100,8 +100,14 @@ function OrcamentoPage() {
         const { data } = supabase.storage.from("quote-references").getPublicUrl(path);
         fileUrl = data.publicUrl;
       } catch (err) {
-        console.error(err);
-        toast.error("Falha ao enviar arquivo. Tente novamente.");
+        const msg =
+          err instanceof Error
+            ? err.message
+            : typeof err === "object" && err && "message" in err
+              ? String((err as { message: unknown }).message)
+              : "Erro desconhecido";
+        console.error("[orcamento] upload failed:", msg, err);
+        toast.error(`Falha ao enviar arquivo: ${msg}`);
         setUploading(false);
         return;
       }
