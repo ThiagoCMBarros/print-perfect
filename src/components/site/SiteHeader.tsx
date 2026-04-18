@@ -123,7 +123,7 @@ export function SiteHeader() {
                     {l.label}
                   </Link>
                 ))}
-                {user ? (
+                {mounted && (user ? (
                   <>
                     <Link to="/conta" onClick={() => setOpen(false)} className="rounded-md px-3 py-3 text-base font-medium hover:bg-accent">Minha conta</Link>
                     <Link to="/conta/pedidos" onClick={() => setOpen(false)} className="rounded-md px-3 py-3 text-base font-medium hover:bg-accent">Meus pedidos</Link>
@@ -131,7 +131,7 @@ export function SiteHeader() {
                   </>
                 ) : (
                   <Link to="/login" onClick={() => setOpen(false)} className="mt-2 rounded-md px-3 py-3 text-base font-medium hover:bg-accent">Entrar / Cadastrar</Link>
-                )}
+                ))}
               </div>
             </SheetContent>
           </Sheet>
