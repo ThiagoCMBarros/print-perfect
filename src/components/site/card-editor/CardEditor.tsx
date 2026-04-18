@@ -83,13 +83,13 @@ export function CardEditor({
   const [saving, setSaving] = useState(false);
   const lastTpl = useRef(tpl);
 
-  // Reset layers ao trocar template (não em modo lock)
+  // Reset layers ao trocar template (não em modo lock e não em emptyDefault)
   useEffect(() => {
     if (lastTpl.current === tpl) return;
     lastTpl.current = tpl;
-    setLayers(buildDefaultLayers(TEMPLATES[tpl]));
+    if (!emptyDefault) setLayers(buildDefaultLayers(TEMPLATES[tpl]));
     setSelectedId(null);
-  }, [tpl]);
+  }, [tpl, emptyDefault]);
 
   const selected = useMemo(() => layers.find((l) => l.id === selectedId) ?? null, [layers, selectedId]);
 
@@ -207,13 +207,15 @@ export function CardEditor({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
-          <PenTool className="mr-2 h-4 w-4" /> {triggerLabel}
-        </Button>
+        {triggerNode ?? (
+          <Button variant="outline" className="w-full">
+            <PenTool className="mr-2 h-4 w-4" /> {triggerLabel}
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-h-[95vh] max-w-5xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editor de arte</DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
@@ -227,20 +229,49 @@ export function CardEditor({
           />
 
           <div className="space-y-3">
-            <div>
-              <Label className="text-xs">Template</Label>
-              <Select value={tpl} onValueChange={(v) => setTpl(v as TemplateKey)} disabled={lockTemplate}>
-                <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(TEMPLATES) as TemplateKey[]).map((k) => (
-                    <SelectItem key={k} value={k}>{TEMPLATES[k].label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {lockTemplate && (
-                <p className="mt-1 text-[10px] text-muted-foreground">Editando o produto selecionado.</p>
-              )}
-            </div>
+            {!hideTemplateSelector && (
+              <div>
+                <Label className="text-xs">Template</Label>
+                <Select value={tpl} onValueChange={(v) => setTpl(v as TemplateKey)} disabled={lockTemplate}>
+                  <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(TEMPLATES) as TemplateKey[]).map((k) => (
+                      <SelectItem key={k} value={k}>{TEMPLATES[k].label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {lockTemplate && (
+                  <p className="mt-1 text-[10px] text-muted-foreground">Editando o produto selecionado.</p>
+                )}
+              </div>
+            )}
+
+            {(allowResizeCanvas || tpl === "custom") && (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-[11px]">Largura (px)</Label>
+                  <Input
+                    type="number"
+                    min={64}
+                    max={4096}
+                    value={customDims.w}
+                    onChange={(e) => setCustomDims((d) => ({ ...d, w: Math.max(64, Math.min(4096, Number(e.target.value) || 64)) }))}
+                    className="mt-1 h-8 text-xs"
+                  />
+                </div>
+                <div>
+                  <Label className="text-[11px]">Altura (px)</Label>
+                  <Input
+                    type="number"
+                    min={64}
+                    max={4096}
+                    value={customDims.h}
+                    onChange={(e) => setCustomDims((d) => ({ ...d, h: Math.max(64, Math.min(4096, Number(e.target.value) || 64)) }))}
+                    className="mt-1 h-8 text-xs"
+                  />
+                </div>
+              </div>
+            )}
 
             <LayersPanel
               layers={layers}
@@ -283,7 +314,7 @@ export function CardEditor({
             {enableSave && onSave && (
               <Button className="w-full" onClick={handleSave} disabled={saving}>
                 {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                Salvar arte e usar no pedido
+                {saveLabel}
               </Button>
             )}
             <Button variant="outline" className="w-full" onClick={exportPng}>
