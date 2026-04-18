@@ -4,11 +4,20 @@ import { Loader2, Package, Tags, Settings2, ShoppingBag, Shield, ArrowLeft, BarC
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { verifyAdmin } from "@/utils/admin.functions";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw redirect({ to: "/login" });
+    // Validação server-side: previne bypass via DevTools (BUG-010).
+    try {
+      const { isAdmin } = await verifyAdmin();
+      if (!isAdmin) throw redirect({ to: "/" });
+    } catch (err) {
+      if ((err as { isRedirect?: boolean })?.isRedirect) throw err;
+      throw redirect({ to: "/" });
+    }
   },
   component: AdminLayout,
 });
