@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as OrcamentoRouteImport } from './routes/orcamento'
 import { Route as LoginRouteImport } from './routes/login'
@@ -24,6 +23,7 @@ import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CarrinhoRouteImport } from './routes/carrinho'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProdutosIndexRouteImport } from './routes/produtos.index'
 import { Route as ContaIndexRouteImport } from './routes/conta.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ProdutosSlugRouteImport } from './routes/produtos.$slug'
@@ -50,11 +50,6 @@ const SobreRoute = SobreRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProdutosRoute = ProdutosRouteImport.update({
-  id: '/produtos',
-  path: '/produtos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacidadeRoute = PrivacidadeRouteImport.update({
@@ -112,6 +107,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProdutosIndexRoute = ProdutosIndexRouteImport.update({
+  id: '/produtos/',
+  path: '/produtos/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContaIndexRoute = ContaIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -123,9 +123,9 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   getParentRoute: () => AdminRoute,
 } as any)
 const ProdutosSlugRoute = ProdutosSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => ProdutosRoute,
+  id: '/produtos/$slug',
+  path: '/produtos/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PedidoIdRoute = PedidoIdRouteImport.update({
   id: '/pedido/$id',
@@ -185,7 +185,6 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/orcamento': typeof OrcamentoRoute
   '/privacidade': typeof PrivacidadeRoute
-  '/produtos': typeof ProdutosRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
@@ -200,6 +199,7 @@ export interface FileRoutesByFullPath {
   '/produtos/$slug': typeof ProdutosSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/conta/': typeof ContaIndexRoute
+  '/produtos/': typeof ProdutosIndexRoute
   '/admin/produtos/$id': typeof AdminProdutosIdRoute
 }
 export interface FileRoutesByTo {
@@ -212,7 +212,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/orcamento': typeof OrcamentoRoute
   '/privacidade': typeof PrivacidadeRoute
-  '/produtos': typeof ProdutosRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
@@ -227,6 +226,7 @@ export interface FileRoutesByTo {
   '/produtos/$slug': typeof ProdutosSlugRoute
   '/admin': typeof AdminIndexRoute
   '/conta': typeof ContaIndexRoute
+  '/produtos': typeof ProdutosIndexRoute
   '/admin/produtos/$id': typeof AdminProdutosIdRoute
 }
 export interface FileRoutesById {
@@ -242,7 +242,6 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/orcamento': typeof OrcamentoRoute
   '/privacidade': typeof PrivacidadeRoute
-  '/produtos': typeof ProdutosRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
@@ -257,6 +256,7 @@ export interface FileRoutesById {
   '/produtos/$slug': typeof ProdutosSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/conta/': typeof ContaIndexRoute
+  '/produtos/': typeof ProdutosIndexRoute
   '/admin/produtos/$id': typeof AdminProdutosIdRoute
 }
 export interface FileRouteTypes {
@@ -273,7 +273,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/orcamento'
     | '/privacidade'
-    | '/produtos'
     | '/reset-password'
     | '/sobre'
     | '/termos'
@@ -288,6 +287,7 @@ export interface FileRouteTypes {
     | '/produtos/$slug'
     | '/admin/'
     | '/conta/'
+    | '/produtos/'
     | '/admin/produtos/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -300,7 +300,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/orcamento'
     | '/privacidade'
-    | '/produtos'
     | '/reset-password'
     | '/sobre'
     | '/termos'
@@ -315,6 +314,7 @@ export interface FileRouteTypes {
     | '/produtos/$slug'
     | '/admin'
     | '/conta'
+    | '/produtos'
     | '/admin/produtos/$id'
   id:
     | '__root__'
@@ -329,7 +329,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/orcamento'
     | '/privacidade'
-    | '/produtos'
     | '/reset-password'
     | '/sobre'
     | '/termos'
@@ -344,6 +343,7 @@ export interface FileRouteTypes {
     | '/produtos/$slug'
     | '/admin/'
     | '/conta/'
+    | '/produtos/'
     | '/admin/produtos/$id'
   fileRoutesById: FileRoutesById
 }
@@ -359,11 +359,12 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   OrcamentoRoute: typeof OrcamentoRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
-  ProdutosRoute: typeof ProdutosRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
   SobreRoute: typeof SobreRoute
   TermosRoute: typeof TermosRoute
   PedidoIdRoute: typeof PedidoIdRoute
+  ProdutosSlugRoute: typeof ProdutosSlugRoute
+  ProdutosIndexRoute: typeof ProdutosIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -387,13 +388,6 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/produtos': {
-      id: '/produtos'
-      path: '/produtos'
-      fullPath: '/produtos'
-      preLoaderRoute: typeof ProdutosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacidade': {
@@ -473,6 +467,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/produtos/': {
+      id: '/produtos/'
+      path: '/produtos'
+      fullPath: '/produtos/'
+      preLoaderRoute: typeof ProdutosIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/conta/': {
       id: '/conta/'
       path: '/'
@@ -489,10 +490,10 @@ declare module '@tanstack/react-router' {
     }
     '/produtos/$slug': {
       id: '/produtos/$slug'
-      path: '/$slug'
+      path: '/produtos/$slug'
       fullPath: '/produtos/$slug'
       preLoaderRoute: typeof ProdutosSlugRouteImport
-      parentRoute: typeof ProdutosRoute
+      parentRoute: typeof rootRouteImport
     }
     '/pedido/$id': {
       id: '/pedido/$id'
@@ -596,18 +597,6 @@ const ContaRouteChildren: ContaRouteChildren = {
 
 const ContaRouteWithChildren = ContaRoute._addFileChildren(ContaRouteChildren)
 
-interface ProdutosRouteChildren {
-  ProdutosSlugRoute: typeof ProdutosSlugRoute
-}
-
-const ProdutosRouteChildren: ProdutosRouteChildren = {
-  ProdutosSlugRoute: ProdutosSlugRoute,
-}
-
-const ProdutosRouteWithChildren = ProdutosRoute._addFileChildren(
-  ProdutosRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
@@ -620,11 +609,12 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   OrcamentoRoute: OrcamentoRoute,
   PrivacidadeRoute: PrivacidadeRoute,
-  ProdutosRoute: ProdutosRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,
   SobreRoute: SobreRoute,
   TermosRoute: TermosRoute,
   PedidoIdRoute: PedidoIdRoute,
+  ProdutosSlugRoute: ProdutosSlugRoute,
+  ProdutosIndexRoute: ProdutosIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
