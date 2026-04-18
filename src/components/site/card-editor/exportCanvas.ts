@@ -12,9 +12,29 @@ export async function renderToBlob(
   if (!ctx) throw new Error("canvas context indisponível");
 
   // Background
-  if (bg.type === "solid") {
+  if (bg.type === "transparent") {
+    // Não pinta nada — canvas permanece transparente.
+  } else if (bg.type === "solid") {
     ctx.fillStyle = bg.color;
     ctx.fillRect(0, 0, t.w, t.h);
+  } else if (bg.type === "image") {
+    try {
+      const img = await loadImage(bg.src);
+      const scale = bg.fit === "cover"
+        ? Math.max(t.w / img.width, t.h / img.height)
+        : Math.min(t.w / img.width, t.h / img.height);
+      const dw = img.width * scale;
+      const dh = img.height * scale;
+      const dx = (t.w - dw) / 2;
+      const dy = (t.h - dh) / 2;
+      if (bg.fit === "contain") {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, t.w, t.h);
+      }
+      ctx.drawImage(img, dx, dy, dw, dh);
+    } catch (err) {
+      console.error("[exportCanvas] erro ao carregar imagem de fundo:", err);
+    }
   } else {
     let grad: CanvasGradient;
     if (bg.direction === "horizontal") grad = ctx.createLinearGradient(0, 0, t.w, 0);

@@ -1,4 +1,4 @@
-export type TemplateKey = "card" | "flyer" | "banner" | "sticker";
+export type TemplateKey = "card" | "flyer" | "banner" | "sticker" | "custom";
 
 export type TextLayer = {
   id: string;
@@ -25,8 +25,10 @@ export type LogoLayer = {
 export type Layer = TextLayer | LogoLayer;
 
 export type Background =
+  | { type: "transparent" }
   | { type: "solid"; color: string }
-  | { type: "gradient"; color1: string; color2: string; direction: "horizontal" | "vertical" | "diagonal-1" | "diagonal-2" };
+  | { type: "gradient"; color1: string; color2: string; direction: "horizontal" | "vertical" | "diagonal-1" | "diagonal-2" }
+  | { type: "image"; src: string; fit: "cover" | "contain" };
 
 export type TemplateMeta = {
   label: string;
@@ -42,6 +44,7 @@ export const TEMPLATES: Record<TemplateKey, TemplateMeta> = {
   flyer:   { label: "Flyer A6 10,5×14,8cm",   w: 1240, h: 1748, realSize: "10,5×14,8 cm", defaults: { title: "PROMOÇÃO", subtitle: "Imperdível este mês", line1: "Whatsapp (11) 99999-9999", line2: "www.suaempresa.com.br" }, font: { title: 140, subtitle: 56, line: 42 } },
   banner:  { label: "Banner 200×100cm",       w: 2000, h: 1000, realSize: "200×100 cm",    defaults: { title: "INAUGURAÇÃO", subtitle: "Estamos abertos!", line1: "Rua Exemplo, 123", line2: "(11) 99999-9999" }, font: { title: 220, subtitle: 96, line: 72 } },
   sticker: { label: "Adesivo 10×10cm",        w: 1181, h: 1181, realSize: "10×10 cm",      defaults: { title: "OBRIGADO!", subtitle: "Pela preferência", line1: "@suaempresa", line2: "" }, font: { title: 130, subtitle: 56, line: 42 } },
+  custom:  { label: "Personalizado",          w: 800,  h: 800,  realSize: "livre",         defaults: { title: "", subtitle: "", line1: "", line2: "" },                                                          font: { title: 80, subtitle: 40, line: 28 } },
 };
 
 export const SLUG_TO_TEMPLATE: Record<string, TemplateKey> = {
@@ -62,6 +65,11 @@ export const FONT_FAMILIES = [
 ];
 
 export function gradientCss(bg: Background): string {
+  if (bg.type === "transparent") {
+    // checker pattern para indicar transparência
+    return "repeating-conic-gradient(#e5e7eb 0% 25%, #ffffff 0% 50%) 50% / 20px 20px";
+  }
+  if (bg.type === "image") return `url("${bg.src}") center / ${bg.fit} no-repeat, #ffffff`;
   if (bg.type === "solid") return bg.color;
   const dir = bg.direction === "horizontal" ? "to right"
     : bg.direction === "vertical" ? "to bottom"

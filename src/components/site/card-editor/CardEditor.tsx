@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PenTool, Download, Save, Loader2, Type, ImagePlus } from "lucide-react";
@@ -18,48 +19,77 @@ import {
   type Layer,
   type LogoLayer,
   type TemplateKey,
+  type TemplateMeta,
   type TextLayer,
 } from "./types";
 
 type Props = {
   triggerLabel?: string;
+  triggerNode?: ReactNode;
+  dialogTitle?: string;
   defaultTemplate?: TemplateKey;
   categorySlug?: string;
   lockTemplate?: boolean;
+  hideTemplateSelector?: boolean;
+  /** Quando definido, sobrescreve as dimensões do template (útil para "custom"). */
+  customSize?: { w: number; h: number };
+  /** Permite ao usuário ajustar w/h quando template = "custom". */
+  allowResizeCanvas?: boolean;
+  defaultBackground?: Background;
+  /** Não cria as camadas de texto padrão do template. */
+  emptyDefault?: boolean;
   onSave?: (blob: Blob) => Promise<void> | void;
   enableSave?: boolean;
+  saveLabel?: string;
   /** Modo personalização: bloqueia adicionar texto, apenas edita campos existentes + logo. */
   customizationMode?: boolean;
 };
 
 export function CardEditor({
   triggerLabel = "Personalizar arte",
+  triggerNode,
+  dialogTitle = "Editor de arte",
   defaultTemplate,
   categorySlug,
   lockTemplate = false,
+  hideTemplateSelector = false,
+  customSize,
+  allowResizeCanvas = false,
+  defaultBackground,
+  emptyDefault = false,
   onSave,
   enableSave = false,
+  saveLabel = "Salvar arte e usar no pedido",
   customizationMode = false,
 }: Props) {
   const initial: TemplateKey =
     defaultTemplate ?? (categorySlug ? SLUG_TO_TEMPLATE[categorySlug] : undefined) ?? "card";
   const [open, setOpen] = useState(false);
   const [tpl, setTpl] = useState<TemplateKey>(initial);
-  const t = TEMPLATES[tpl];
+  const baseT = TEMPLATES[tpl];
+  const [customDims, setCustomDims] = useState<{ w: number; h: number }>(
+    customSize ?? { w: baseT.w, h: baseT.h },
+  );
+  const t: TemplateMeta = useMemo(() => {
+    if (tpl === "custom" || customSize) {
+      return { ...baseT, w: customDims.w, h: customDims.h };
+    }
+    return baseT;
+  }, [tpl, baseT, customDims, customSize]);
 
-  const [background, setBackground] = useState<Background>({ type: "solid", color: "#0f172a" });
-  const [layers, setLayers] = useState<Layer[]>(() => buildDefaultLayers(t));
+  const [background, setBackground] = useState<Background>(defaultBackground ?? { type: "solid", color: "#0f172a" });
+  const [layers, setLayers] = useState<Layer[]>(() => (emptyDefault ? [] : buildDefaultLayers(t)));
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const lastTpl = useRef(tpl);
 
-  // Reset layers ao trocar template (não em modo lock)
+  // Reset layers ao trocar template (não em modo lock e não em emptyDefault)
   useEffect(() => {
     if (lastTpl.current === tpl) return;
     lastTpl.current = tpl;
-    setLayers(buildDefaultLayers(TEMPLATES[tpl]));
+    if (!emptyDefault) setLayers(buildDefaultLayers(TEMPLATES[tpl]));
     setSelectedId(null);
-  }, [tpl]);
+  }, [tpl, emptyDefault]);
 
   const selected = useMemo(() => layers.find((l) => l.id === selectedId) ?? null, [layers, selectedId]);
 
@@ -177,13 +207,15 @@ export function CardEditor({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
-          <PenTool className="mr-2 h-4 w-4" /> {triggerLabel}
-        </Button>
+        {triggerNode ?? (
+          <Button variant="outline" className="w-full">
+            <PenTool className="mr-2 h-4 w-4" /> {triggerLabel}
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-h-[95vh] max-w-5xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editor de arte</DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
@@ -197,20 +229,49 @@ export function CardEditor({
           />
 
           <div className="space-y-3">
-            <div>
-              <Label className="text-xs">Template</Label>
-              <Select value={tpl} onValueChange={(v) => setTpl(v as TemplateKey)} disabled={lockTemplate}>
-                <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(TEMPLATES) as TemplateKey[]).map((k) => (
-                    <SelectItem key={k} value={k}>{TEMPLATES[k].label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {lockTemplate && (
-                <p className="mt-1 text-[10px] text-muted-foreground">Editando o produto selecionado.</p>
-              )}
-            </div>
+            {!hideTemplateSelector && (
+              <div>
+                <Label className="text-xs">Template</Label>
+                <Select value={tpl} onValueChange={(v) => setTpl(v as TemplateKey)} disabled={lockTemplate}>
+                  <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(TEMPLATES) as TemplateKey[]).map((k) => (
+                      <SelectItem key={k} value={k}>{TEMPLATES[k].label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {lockTemplate && (
+                  <p className="mt-1 text-[10px] text-muted-foreground">Editando o produto selecionado.</p>
+                )}
+              </div>
+            )}
+
+            {(allowResizeCanvas || tpl === "custom") && (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-[11px]">Largura (px)</Label>
+                  <Input
+                    type="number"
+                    min={64}
+                    max={4096}
+                    value={customDims.w}
+                    onChange={(e) => setCustomDims((d) => ({ ...d, w: Math.max(64, Math.min(4096, Number(e.target.value) || 64)) }))}
+                    className="mt-1 h-8 text-xs"
+                  />
+                </div>
+                <div>
+                  <Label className="text-[11px]">Altura (px)</Label>
+                  <Input
+                    type="number"
+                    min={64}
+                    max={4096}
+                    value={customDims.h}
+                    onChange={(e) => setCustomDims((d) => ({ ...d, h: Math.max(64, Math.min(4096, Number(e.target.value) || 64)) }))}
+                    className="mt-1 h-8 text-xs"
+                  />
+                </div>
+              </div>
+            )}
 
             <LayersPanel
               layers={layers}
@@ -253,7 +314,7 @@ export function CardEditor({
             {enableSave && onSave && (
               <Button className="w-full" onClick={handleSave} disabled={saving}>
                 {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                Salvar arte e usar no pedido
+                {saveLabel}
               </Button>
             )}
             <Button variant="outline" className="w-full" onClick={exportPng}>

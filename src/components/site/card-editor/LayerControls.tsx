@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Trash2, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
+import { Trash2, AlignLeft, AlignCenter, AlignRight, Wand2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import type { Layer } from "./types";
 import { FONT_FAMILIES } from "./types";
+import { removeBackground } from "@/lib/remove-bg";
 
 type Props = {
   layer: Layer;
@@ -96,13 +99,42 @@ export function LayerControls({ layer, onUpdate, onDelete }: Props) {
           </div>
         </>
       ) : (
-        <div>
-          <Label className="text-[11px]">Opacidade: {Math.round(layer.opacity * 100)}%</Label>
-          <input type="range" min={0} max={100} value={layer.opacity * 100}
-            onChange={(e) => onUpdate({ opacity: Number(e.target.value) / 100 })}
-            className="mt-1 w-full" />
-        </div>
+        <LogoControls layer={layer} onUpdate={onUpdate} />
       )}
+    </div>
+  );
+}
+
+function LogoControls({ layer, onUpdate }: { layer: Extract<Layer, { type: "logo" }>; onUpdate: (patch: Partial<Layer>) => void }) {
+  const [removing, setRemoving] = useState(false);
+
+  async function handleRemoveBg() {
+    setRemoving(true);
+    try {
+      toast.info("Removendo fundo… (primeiro uso baixa o modelo, pode demorar)");
+      const url = await removeBackground(layer.src);
+      onUpdate({ src: url });
+      toast.success("Fundo removido");
+    } catch (err) {
+      console.error(err);
+      toast.error("Falha ao remover fundo");
+    } finally {
+      setRemoving(false);
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <Label className="text-[11px]">Opacidade: {Math.round(layer.opacity * 100)}%</Label>
+        <input type="range" min={0} max={100} value={layer.opacity * 100}
+          onChange={(e) => onUpdate({ opacity: Number(e.target.value) / 100 })}
+          className="mt-1 w-full" />
+      </div>
+      <Button type="button" size="sm" variant="outline" className="w-full" onClick={handleRemoveBg} disabled={removing}>
+        {removing ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-2 h-3.5 w-3.5" />}
+        Remover fundo (IA)
+      </Button>
     </div>
   );
 }
