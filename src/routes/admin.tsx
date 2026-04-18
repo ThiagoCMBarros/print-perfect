@@ -11,13 +11,8 @@ export const Route = createFileRoute("/admin")({
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw redirect({ to: "/login" });
     // Validação server-side: previne bypass via DevTools (BUG-010).
-    try {
-      const { isAdmin } = await verifyAdmin();
-      if (!isAdmin) throw redirect({ to: "/" });
-    } catch (err) {
-      if ((err as { isRedirect?: boolean })?.isRedirect) throw err;
-      throw redirect({ to: "/" });
-    }
+    const { isAdmin } = await verifyAdmin();
+    if (!isAdmin) throw redirect({ to: "/" });
   },
   component: AdminLayout,
 });
