@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { Clock, ArrowRight, ImageIcon } from "lucide-react";
+import { Clock, ArrowRight, ImageIcon, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/catalog";
 import type { Tables } from "@/integrations/supabase/types";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 export type ProductCardData = Pick<
   Tables<"products">,
@@ -11,6 +12,7 @@ export type ProductCardData = Pick<
 >;
 
 export function ProductCard({ product }: { product: ProductCardData }) {
+  const { isAdmin } = useIsAdmin();
   return (
     <Link
       to="/produtos/$slug"
@@ -21,6 +23,18 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         className="relative grid aspect-[4/3] place-items-center overflow-hidden"
         style={{ backgroundImage: "var(--gradient-hero)" }}
       >
+        {isAdmin && (
+          <Link
+            to="/admin/produtos/$id"
+            params={{ id: product.id }}
+            onClick={(e) => e.stopPropagation()}
+            title="Editar produto"
+            aria-label="Editar produto"
+            className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-background/90 text-foreground shadow-md ring-1 ring-border backdrop-blur transition hover:bg-brand hover:text-brand-foreground"
+          >
+            <Pencil className="h-4 w-4" />
+          </Link>
+        )}
         {product.image && /^(https?:|\/)/.test(product.image) ? (
           <img
             src={product.image}
