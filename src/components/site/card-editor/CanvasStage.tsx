@@ -147,23 +147,9 @@ export function CanvasStage({ template, background, layers, selectedId, onSelect
                 }}
               >
                 {layer.type === "text" ? (
-                  <div
-                    style={{
-                      color: layer.color,
-                      fontSize: layer.fontSize,
-                      fontWeight: layer.fontWeight,
-                      fontFamily: layer.fontFamily,
-                      textAlign: layer.align,
-                      lineHeight: 1.2,
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                      pointerEvents: "none",
-                      width: "100%",
-                      height: "100%",
-                    }}
-                  >
-                    {layer.content || "—"}
-                  </div>
+                  <TextContent layer={layer} onMeasured={(h) => {
+                    if (Math.abs(h - layer.h) > 1) onUpdate(layer.id, { h });
+                  }} />
                 ) : (
                   <img src={layer.src} alt="logo" draggable={false}
                     style={{ width: "100%", height: "100%", objectFit: "contain", opacity: layer.opacity, pointerEvents: "none" }} />
