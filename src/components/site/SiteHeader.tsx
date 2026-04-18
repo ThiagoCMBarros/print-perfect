@@ -109,12 +109,6 @@ export function SiteHeader() {
               )}
             </Link>
           </Button>
-                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[10px] font-bold text-brand-foreground">
-                  {count}
-                </span>
-              )}
-            </Link>
-          </Button>
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
