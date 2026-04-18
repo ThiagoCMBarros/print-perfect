@@ -75,11 +75,13 @@ export type Database = {
       }
       cart_items: {
         Row: {
+          artwork_back_path: string | null
           artwork_path: string | null
           created_at: string
           finish_option_id: string | null
           id: string
           material_option_id: string | null
+          print_side_option_id: string | null
           product_id: string
           qty: number
           quantity_option_id: string | null
@@ -90,11 +92,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          artwork_back_path?: string | null
           artwork_path?: string | null
           created_at?: string
           finish_option_id?: string | null
           id?: string
           material_option_id?: string | null
+          print_side_option_id?: string | null
           product_id: string
           qty?: number
           quantity_option_id?: string | null
@@ -105,11 +109,13 @@ export type Database = {
           user_id: string
         }
         Update: {
+          artwork_back_path?: string | null
           artwork_path?: string | null
           created_at?: string
           finish_option_id?: string | null
           id?: string
           material_option_id?: string | null
+          print_side_option_id?: string | null
           product_id?: string
           qty?: number
           quantity_option_id?: string | null
@@ -130,6 +136,13 @@ export type Database = {
           {
             foreignKeyName: "cart_items_material_option_id_fkey"
             columns: ["material_option_id"]
+            isOneToOne: false
+            referencedRelation: "product_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_print_side_option_id_fkey"
+            columns: ["print_side_option_id"]
             isOneToOne: false
             referencedRelation: "product_options"
             referencedColumns: ["id"]
@@ -235,6 +248,8 @@ export type Database = {
       }
       order_items: {
         Row: {
+          artwork_back_filename: string | null
+          artwork_back_path: string | null
           artwork_filename: string | null
           artwork_note: string | null
           artwork_path: string | null
@@ -253,6 +268,8 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          artwork_back_filename?: string | null
+          artwork_back_path?: string | null
           artwork_filename?: string | null
           artwork_note?: string | null
           artwork_path?: string | null
@@ -271,6 +288,8 @@ export type Database = {
           unit_price: number
         }
         Update: {
+          artwork_back_filename?: string | null
+          artwork_back_path?: string | null
           artwork_filename?: string | null
           artwork_note?: string | null
           artwork_path?: string | null
@@ -616,7 +635,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "customer"
       artwork_status: "none" | "pending" | "approved" | "rejected"
-      option_type: "size" | "material" | "finish" | "quantity"
+      option_type: "size" | "material" | "finish" | "quantity" | "print_side"
       order_status:
         | "aguardando_pagamento"
         | "pago"
@@ -759,7 +778,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "customer"],
       artwork_status: ["none", "pending", "approved", "rejected"],
-      option_type: ["size", "material", "finish", "quantity"],
+      option_type: ["size", "material", "finish", "quantity", "print_side"],
       order_status: [
         "aguardando_pagamento",
         "pago",
