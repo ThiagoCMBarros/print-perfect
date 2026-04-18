@@ -2,8 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft, ShoppingCart, Upload, PenTool, MessageCircle,
-  Clock, ShieldCheck, Truck, Check, ImageIcon, Loader2,
+  Clock, ShieldCheck, Truck, Check, ImageIcon, Loader2, Pencil,
 } from "lucide-react";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
