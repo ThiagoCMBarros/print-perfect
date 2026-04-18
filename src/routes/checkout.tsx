@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { ShieldCheck, CreditCard, QrCode, FileText } from "lucide-react";
@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/catalog";
+import { calculateShipping, FREE_SHIPPING_AMOUNT } from "@/lib/shipping";
 
 const addressSchema = z.object({
   recipient: z.string().trim().min(2).max(120),
@@ -35,6 +36,7 @@ function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const [productionDaysMap, setProductionDaysMap] = useState<Record<string, number>>({});
 
   const [addr, setAddr] = useState({
     recipient: "", zip_code: "", street: "", number: "",
@@ -61,6 +63,42 @@ function CheckoutPage() {
       });
   }, [user]);
 
+  // Busca os production_days reais dos produtos do carrinho para calcular prazo de entrega.
+  useEffect(() => {
+    const ids = Array.from(new Set(items.map((i) => i.product_id)));
+    if (ids.length === 0) return;
+    supabase
+      .from("products")
+      .select("id, production_days")
+      .in("id", ids)
+      .then(({ data }) => {
+        const map: Record<string, number> = {};
+        (data ?? []).forEach((p) => { map[p.id] = p.production_days; });
+        setProductionDaysMap(map);
+      });
+  }, [items]);
+
+  // Frete real por CEP (BUG-002) — null antes do CEP estar válido.
+  const shippingQuote = useMemo(
+    () => calculateShipping(addr.zip_code, subtotal),
+    [addr.zip_code, subtotal],
+  );
+
+  // Prazo real (BUG-008): max(production_days dos itens, considerando express) + dias do frete.
+  const productionDays = useMemo(() => {
+    if (items.length === 0) return 0;
+    return Math.max(
+      ...items.map((it) => {
+        const days = productionDaysMap[it.product_id] ?? 4;
+        return it.urgency === "express" ? Math.max(1, Math.ceil(days / 2)) : days;
+      }),
+    );
+  }, [items, productionDaysMap]);
+
+  const estimatedDays = productionDays + (shippingQuote?.deliveryDays ?? 0);
+  const shipping = shippingQuote?.cost ?? 0;
+  const total = subtotal + shipping;
+
   if (!user) return null;
   if (items.length === 0) {
     return (
@@ -73,20 +111,15 @@ function CheckoutPage() {
     );
   }
 
-  const shipping = subtotal >= 250 ? 0 : 29.9;
-  const total = subtotal + shipping;
-  const estimatedDays = Math.max(...items.map((i) => (i.urgency === "express" ? 2 : 4)));
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = addressSchema.safeParse(addr);
     if (!parsed.success) return toast.error(parsed.error.issues[0].message);
+    if (!shippingQuote) return toast.error("CEP inválido para cálculo de frete.");
 
     setSubmitting(true);
-    // Salva endereço (não-bloqueante para o pedido)
     await supabase.from("addresses").upsert({ ...parsed.data, user_id: user.id, is_default: true });
 
-    // Cria pedido
     const { data: order, error } = await supabase.from("orders").insert({
       user_id: user.id,
       payment_method: payment,
@@ -103,7 +136,7 @@ function CheckoutPage() {
       return toast.error(error?.message ?? "Erro ao criar pedido");
     }
 
-    // Itens
+    // Itens — copia artwork_path do carrinho e marca como "pending" se já tiver arte.
     const itemsPayload = items.map((it) => ({
       order_id: order.id,
       product_id: it.product_id,
@@ -119,6 +152,9 @@ function CheckoutPage() {
       unit_price: it.unit_price,
       qty: it.qty,
       total_price: it.total_price,
+      artwork_path: it.artwork_path ?? null,
+      artwork_status: (it.artwork_path ? "pending" : "none") as "pending" | "none",
+      artwork_uploaded_at: it.artwork_path ? new Date().toISOString() : null,
     }));
     const { error: itemsErr } = await supabase.from("order_items").insert(itemsPayload);
     if (itemsErr) {
@@ -138,7 +174,6 @@ function CheckoutPage() {
 
         <form onSubmit={handleSubmit} className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="space-y-6">
-            {/* Endereço */}
             <div className="rounded-2xl border bg-card p-6">
               <h2 className="font-semibold">Endereço de entrega</h2>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -151,9 +186,20 @@ function CheckoutPage() {
                 <Field label="Cidade" value={addr.city} onChange={(v) => setAddr({ ...addr, city: v })} />
                 <Field label="UF" value={addr.state} onChange={(v) => setAddr({ ...addr, state: v.toUpperCase() })} maxLength={2} />
               </div>
+              {shippingQuote && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Frete para <strong>{shippingQuote.regionLabel}</strong>:{" "}
+                  {shippingQuote.freeShippingApplied
+                    ? <span className="text-success font-semibold">Grátis</span>
+                    : <strong>{formatBRL(shippingQuote.cost)}</strong>}
+                  {" · "}entrega em {shippingQuote.deliveryDays} dias úteis após a produção
+                </p>
+              )}
+              {!shippingQuote && addr.zip_code.replace(/\D/g, "").length >= 5 && (
+                <p className="mt-3 text-xs text-destructive">CEP inválido. Confira os 8 dígitos.</p>
+              )}
             </div>
 
-            {/* Pagamento */}
             <div className="rounded-2xl border bg-card p-6">
               <h2 className="font-semibold">Forma de pagamento</h2>
               <RadioGroup value={payment} onValueChange={(v) => setPayment(v as never)} className="mt-4 grid gap-2 sm:grid-cols-3">
@@ -166,14 +212,12 @@ function CheckoutPage() {
               </p>
             </div>
 
-            {/* Observações */}
             <div className="rounded-2xl border bg-card p-6">
               <Label>Observações (opcional)</Label>
               <Textarea className="mt-2" rows={3} maxLength={500} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Ex.: instruções de entrega, prazos especiais..." />
             </div>
           </div>
 
-          {/* Resumo */}
           <aside className="h-fit rounded-2xl border bg-card p-6 shadow-soft">
             <h2 className="font-display text-lg font-bold">Seu pedido</h2>
             <ul className="mt-4 space-y-3 text-sm">
@@ -186,13 +230,28 @@ function CheckoutPage() {
             </ul>
             <div className="mt-4 space-y-1 border-t pt-4 text-sm">
               <Row label="Subtotal" value={formatBRL(subtotal)} />
-              <Row label="Frete" value={shipping === 0 ? "Grátis" : formatBRL(shipping)} />
-              <Row label="Prazo estimado" value={`${estimatedDays} dias úteis`} />
+              <Row
+                label="Frete"
+                value={
+                  shippingQuote
+                    ? (shipping === 0 ? "Grátis" : formatBRL(shipping))
+                    : "Informe o CEP"
+                }
+              />
+              <Row
+                label="Prazo estimado"
+                value={shippingQuote ? `${estimatedDays} dias úteis` : "—"}
+              />
+              {!shippingQuote?.freeShippingApplied && (
+                <p className="pt-2 text-[11px] text-muted-foreground">
+                  Frete grátis acima de {formatBRL(FREE_SHIPPING_AMOUNT)}.
+                </p>
+              )}
             </div>
             <div className="mt-4 flex justify-between border-t pt-4 text-lg font-bold">
               <span>Total</span><span className="text-brand">{formatBRL(total)}</span>
             </div>
-            <Button type="submit" size="lg" className="mt-6 h-12 w-full rounded-xl shadow-glow" disabled={submitting}>
+            <Button type="submit" size="lg" className="mt-6 h-12 w-full rounded-xl shadow-glow" disabled={submitting || !shippingQuote}>
               {submitting ? "Processando..." : "Confirmar pedido"}
             </Button>
             <p className="mt-3 flex items-center justify-center gap-1 text-xs text-muted-foreground">
