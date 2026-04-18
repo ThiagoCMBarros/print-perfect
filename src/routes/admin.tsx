@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, Package, Tags, Settings2, ShoppingBag, Shield, ArrowLeft, BarChart3, Users } from "lucide-react";
+import { Loader2, Package, Tags, Settings2, ShoppingBag, Shield, ArrowLeft, BarChart3, Users, Plug } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ const tabs = [
   { to: "/admin/opcoes", label: "Opções", icon: Settings2, exact: false },
   { to: "/admin/pedidos", label: "Pedidos", icon: ShoppingBag, exact: false },
   { to: "/admin/clientes", label: "Clientes", icon: Users, exact: false },
+  { to: "/admin/integracoes", label: "Integrações", icon: Plug, exact: false },
 ] as const;
 
 function AdminLayout() {

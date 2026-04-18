@@ -32,6 +32,7 @@ import { Route as ContaPedidosRouteImport } from './routes/conta.pedidos'
 import { Route as ContaEnderecosRouteImport } from './routes/conta.enderecos'
 import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
 import { Route as AdminOpcoesRouteImport } from './routes/admin.opcoes'
+import { Route as AdminIntegracoesRouteImport } from './routes/admin.integracoes'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminClientesRouteImport } from './routes/admin.clientes'
 import { Route as AdminCategoriasRouteImport } from './routes/admin.categorias'
@@ -152,6 +153,11 @@ const AdminOpcoesRoute = AdminOpcoesRouteImport.update({
   path: '/opcoes',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminIntegracoesRoute = AdminIntegracoesRouteImport.update({
+  id: '/integracoes',
+  path: '/integracoes',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -191,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/integracoes': typeof AdminIntegracoesRoute
   '/admin/opcoes': typeof AdminOpcoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/conta/enderecos': typeof ContaEnderecosRoute
@@ -218,6 +225,7 @@ export interface FileRoutesByTo {
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/integracoes': typeof AdminIntegracoesRoute
   '/admin/opcoes': typeof AdminOpcoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/conta/enderecos': typeof ContaEnderecosRoute
@@ -248,6 +256,7 @@ export interface FileRoutesById {
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/clientes': typeof AdminClientesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/integracoes': typeof AdminIntegracoesRoute
   '/admin/opcoes': typeof AdminOpcoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/conta/enderecos': typeof ContaEnderecosRoute
@@ -279,6 +288,7 @@ export interface FileRouteTypes {
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/dashboard'
+    | '/admin/integracoes'
     | '/admin/opcoes'
     | '/admin/pedidos'
     | '/conta/enderecos'
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/dashboard'
+    | '/admin/integracoes'
     | '/admin/opcoes'
     | '/admin/pedidos'
     | '/conta/enderecos'
@@ -335,6 +346,7 @@ export interface FileRouteTypes {
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/dashboard'
+    | '/admin/integracoes'
     | '/admin/opcoes'
     | '/admin/pedidos'
     | '/conta/enderecos'
@@ -530,6 +542,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOpcoesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/integracoes': {
+      id: '/admin/integracoes'
+      path: '/integracoes'
+      fullPath: '/admin/integracoes'
+      preLoaderRoute: typeof AdminIntegracoesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/dashboard': {
       id: '/admin/dashboard'
       path: '/dashboard'
@@ -565,6 +584,7 @@ interface AdminRouteChildren {
   AdminCategoriasRoute: typeof AdminCategoriasRoute
   AdminClientesRoute: typeof AdminClientesRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminIntegracoesRoute: typeof AdminIntegracoesRoute
   AdminOpcoesRoute: typeof AdminOpcoesRoute
   AdminPedidosRoute: typeof AdminPedidosRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -575,6 +595,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriasRoute: AdminCategoriasRoute,
   AdminClientesRoute: AdminClientesRoute,
   AdminDashboardRoute: AdminDashboardRoute,
+  AdminIntegracoesRoute: AdminIntegracoesRoute,
   AdminOpcoesRoute: AdminOpcoesRoute,
   AdminPedidosRoute: AdminPedidosRoute,
   AdminIndexRoute: AdminIndexRoute,
