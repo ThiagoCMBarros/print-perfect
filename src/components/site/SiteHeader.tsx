@@ -102,7 +102,13 @@ export function SiteHeader() {
           <Button variant="ghost" size="icon" className="relative" aria-label="Carrinho" asChild>
             <Link to="/carrinho">
               <ShoppingCart className="h-5 w-5" />
-              {count > 0 && (
+              {mounted && count > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[10px] font-bold text-brand-foreground">
+                  {count}
+                </span>
+              )}
+            </Link>
+          </Button>
                 <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[10px] font-bold text-brand-foreground">
                   {count}
                 </span>
