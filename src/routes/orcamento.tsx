@@ -50,8 +50,26 @@ function OrcamentoPage() {
   const [quantity, setQuantity] = useState("");
   const [deadline, setDeadline] = useState("");
   const [details, setDetails] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const buildMessage = () => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    if (selected.size > MAX_FILE_SIZE) {
+      toast.error("Arquivo muito grande. Máximo 20MB.");
+      return;
+    }
+    setFile(selected);
+  };
+
+  const removeFile = () => {
+    setFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const buildMessage = (fileUrl?: string) => {
     const lines = [
       "Olá! Gostaria de solicitar um orçamento personalizado.",
       "",
@@ -61,13 +79,36 @@ function OrcamentoPage() {
       quantity && `*Quantidade:* ${quantity}`,
       deadline && `*Prazo desejado:* ${deadline}`,
       details && `\n*Detalhes do projeto:*\n${details}`,
+      fileUrl && `\n*Arquivo de referência:*\n${fileUrl}`,
     ].filter(Boolean);
     return lines.join("\n");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const message = encodeURIComponent(buildMessage());
+    let fileUrl: string | undefined;
+
+    if (file) {
+      setUploading(true);
+      try {
+        const ext = file.name.split(".").pop() ?? "bin";
+        const path = `${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage
+          .from("quote-references")
+          .upload(path, file, { contentType: file.type || undefined });
+        if (error) throw error;
+        const { data } = supabase.storage.from("quote-references").getPublicUrl(path);
+        fileUrl = data.publicUrl;
+      } catch (err) {
+        console.error(err);
+        toast.error("Falha ao enviar arquivo. Tente novamente.");
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    }
+
+    const message = encodeURIComponent(buildMessage(fileUrl));
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
