@@ -166,6 +166,7 @@ export type Database = {
       }
       categories: {
         Row: {
+          complexity: Database["public"]["Enums"]["product_complexity"]
           created_at: string
           description: string | null
           icon: string | null
@@ -175,6 +176,7 @@ export type Database = {
           sort_order: number
         }
         Insert: {
+          complexity?: Database["public"]["Enums"]["product_complexity"]
           created_at?: string
           description?: string | null
           icon?: string | null
@@ -184,6 +186,7 @@ export type Database = {
           sort_order?: number
         }
         Update: {
+          complexity?: Database["public"]["Enums"]["product_complexity"]
           created_at?: string
           description?: string | null
           icon?: string | null
@@ -450,6 +453,7 @@ export type Database = {
           base_price: number
           bestseller: boolean
           category_id: string
+          complexity: Database["public"]["Enums"]["product_complexity"] | null
           created_at: string
           description: string | null
           id: string
@@ -466,6 +470,7 @@ export type Database = {
           base_price: number
           bestseller?: boolean
           category_id: string
+          complexity?: Database["public"]["Enums"]["product_complexity"] | null
           created_at?: string
           description?: string | null
           id?: string
@@ -482,6 +487,7 @@ export type Database = {
           base_price?: number
           bestseller?: boolean
           category_id?: string
+          complexity?: Database["public"]["Enums"]["product_complexity"] | null
           created_at?: string
           description?: string | null
           id?: string
@@ -623,6 +629,7 @@ export type Database = {
         | "entregue"
         | "cancelado"
       payment_method: "pix" | "credit_card" | "boleto"
+      product_complexity: "simple" | "complex"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -766,6 +773,7 @@ export const Constants = {
         "cancelado",
       ],
       payment_method: ["pix", "credit_card", "boleto"],
+      product_complexity: ["simple", "complex"],
     },
   },
 } as const

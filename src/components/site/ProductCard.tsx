@@ -53,8 +53,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
 
         <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
           <Clock className="h-3.5 w-3.5 text-brand" />
-          Pronto em {product.production_days}{" "}
-          {product.production_days === 1 ? "dia útil" : "dias úteis"}
+          A partir de 3 dias úteis + 1 dia de postagem
         </div>
 
         <div className="mt-5 flex items-end justify-between">

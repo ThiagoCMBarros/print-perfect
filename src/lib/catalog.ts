@@ -1,12 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { productionDaysForItem, effectiveComplexity, type Complexity } from "@/lib/production-time";
 
 export type DBProduct = Tables<"products">;
 export type DBCategory = Tables<"categories">;
 export type DBOption = Tables<"product_options">;
 
 export type ProductWithOptions = DBProduct & {
-  categories: Pick<DBCategory, "id" | "slug" | "name"> | null;
+  categories: (Pick<DBCategory, "id" | "slug" | "name"> & { complexity?: Complexity }) | null;
   product_options: DBOption[];
 };
 
@@ -42,13 +43,12 @@ export async function fetchProducts(filters: {
 export async function fetchProductBySlug(slug: string): Promise<ProductWithOptions | null> {
   const { data, error } = await supabase
     .from("products")
-    .select("*, categories(id, slug, name), product_options(*)")
+    .select("*, categories(id, slug, name, complexity), product_options(*)")
     .eq("slug", slug)
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
   const p = data as ProductWithOptions;
-  // Ordena opções por sort_order
   p.product_options = [...p.product_options].sort((a, b) => a.sort_order - b.sort_order);
   return p;
 }
@@ -83,14 +83,17 @@ export function calcPrice(
     u;
   const units = Number(qty?.numeric_value ?? 1);
   const unit = total / units;
-  const days = urgency === "express"
-    ? Math.max(1, Math.ceil(product.production_days / 2))
-    : product.production_days;
+  const complexity = effectiveComplexity(
+    (product as DBProduct & { complexity?: Complexity | null }).complexity,
+    product.categories?.complexity,
+  );
+  const days = productionDaysForItem(units, complexity, urgency);
   return {
     unit: Math.round(unit * 100) / 100,
     total: Math.round(total * 100) / 100,
     units,
     days,
+    complexity,
     selected: { size, material, finish, qty },
   };
 }

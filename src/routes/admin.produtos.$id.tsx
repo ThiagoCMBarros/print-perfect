@@ -28,12 +28,13 @@ type FormState = {
   active: boolean;
   bestseller: boolean;
   new_release: boolean;
+  complexity: "" | "simple" | "complex"; // "" = herda da categoria
 };
 
 const blank: FormState = {
   name: "", slug: "", short_description: "", description: "",
   base_price: "0", production_days: "3", category_id: "", image: "",
-  active: true, bestseller: false, new_release: false,
+  active: true, bestseller: false, new_release: false, complexity: "",
 };
 
 function slugify(s: string) {
@@ -69,6 +70,7 @@ function AdminProductForm() {
             production_days: String(data.production_days),
             category_id: data.category_id, image: data.image ?? "",
             active: data.active, bestseller: data.bestseller, new_release: data.new_release,
+            complexity: ((data as Tables<"products"> & { complexity?: "simple" | "complex" | null }).complexity) ?? "",
           });
         }
         setLoading(false);
@@ -111,6 +113,7 @@ function AdminProductForm() {
       active: form.active,
       bestseller: form.bestseller,
       new_release: form.new_release,
+      complexity: form.complexity === "" ? null : form.complexity,
     };
     if (isNew) {
       const { data, error } = await supabase.from("products").insert(payload).select("id").single();
@@ -233,9 +236,19 @@ function AdminProductForm() {
                 onChange={(e) => setForm((f) => ({ ...f, base_price: e.target.value }))} />
             </div>
             <div>
-              <Label>Prazo (dias úteis)</Label>
-              <Input type="number" value={form.production_days}
-                onChange={(e) => setForm((f) => ({ ...f, production_days: e.target.value }))} />
+              <Label>Complexidade (sobrescreve a categoria)</Label>
+              <Select
+                value={form.complexity === "" ? "inherit" : form.complexity}
+                onValueChange={(v) => setForm((f) => ({ ...f, complexity: v === "inherit" ? "" : (v as "simple" | "complex") }))}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inherit">Herdar da categoria</SelectItem>
+                  <SelectItem value="simple">Simples (+1d a cada 3000 un)</SelectItem>
+                  <SelectItem value="complex">Complexa (+3d a cada 3000 un)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="mt-1 text-xs text-muted-foreground">Base 3 dias úteis + 1 dia de postagem.</p>
             </div>
           </div>
 

@@ -14,6 +14,7 @@ import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/catalog";
 import { calculateShipping, FREE_SHIPPING_AMOUNT } from "@/lib/shipping";
+import { productionDaysForCart, effectiveComplexity } from "@/lib/production-time";
 
 const addressSchema = z.object({
   recipient: z.string().trim().min(2).max(120),
@@ -36,7 +37,7 @@ function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
-  const [productionDaysMap, setProductionDaysMap] = useState<Record<string, number>>({});
+  const [unitsMap, setUnitsMap] = useState<Record<string, number>>({});
 
   const [addr, setAddr] = useState({
     recipient: "", zip_code: "", street: "", number: "",
@@ -63,37 +64,42 @@ function CheckoutPage() {
       });
   }, [user]);
 
-  // Busca os production_days reais dos produtos do carrinho para calcular prazo de entrega.
+  // Busca numeric_value das opções de quantidade para calcular o prazo conforme regra.
   useEffect(() => {
-    const ids = Array.from(new Set(items.map((i) => i.product_id)));
-    if (ids.length === 0) return;
+    const ids = Array.from(new Set(items.map((i) => i.quantity_option_id).filter(Boolean))) as string[];
+    if (ids.length === 0) { setUnitsMap({}); return; }
     supabase
-      .from("products")
-      .select("id, production_days")
+      .from("product_options")
+      .select("id, numeric_value")
       .in("id", ids)
       .then(({ data }) => {
         const map: Record<string, number> = {};
-        (data ?? []).forEach((p) => { map[p.id] = p.production_days; });
-        setProductionDaysMap(map);
+        (data ?? []).forEach((o) => { map[o.id] = Number(o.numeric_value ?? 1); });
+        setUnitsMap(map);
       });
   }, [items]);
 
-  // Frete real por CEP (BUG-002) — null antes do CEP estar válido.
+  // Frete real por CEP — null antes do CEP estar válido.
   const shippingQuote = useMemo(
     () => calculateShipping(addr.zip_code, subtotal),
     [addr.zip_code, subtotal],
   );
 
-  // Prazo real (BUG-008): max(production_days dos itens, considerando express) + dias do frete.
+  // Prazo: produção (regra simples/complex × 3000un) + 1d postagem + dias do frete por região.
   const productionDays = useMemo(() => {
     if (items.length === 0) return 0;
-    return Math.max(
-      ...items.map((it) => {
-        const days = productionDaysMap[it.product_id] ?? 4;
-        return it.urgency === "express" ? Math.max(1, Math.ceil(days / 2)) : days;
+    return productionDaysForCart(
+      items.map((it) => {
+        const units = (it.quantity_option_id && unitsMap[it.quantity_option_id]) || 1;
+        const totalQty = units * it.qty;
+        const complexity = effectiveComplexity(
+          it.products?.complexity ?? null,
+          it.products?.categories?.complexity ?? null,
+        );
+        return { qty: totalQty, complexity, urgency: it.urgency as "standard" | "express" };
       }),
     );
-  }, [items, productionDaysMap]);
+  }, [items, unitsMap]);
 
   const estimatedDays = productionDays + (shippingQuote?.deliveryDays ?? 0);
   const shipping = shippingQuote?.cost ?? 0;
