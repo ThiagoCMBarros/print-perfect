@@ -267,7 +267,7 @@ function ProductPage() {
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Total estimado</p>
                 <p className="font-display text-4xl font-bold text-brand">{price ? formatBRL(price.total) : "—"}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {price ? `${formatBRL(price.unit)} por unidade · pronto em ${price.days} ${price.days === 1 ? "dia útil" : "dias úteis"}` : ""}
+                  {price ? `${formatBRL(price.unit)} por unidade · produção em ${price.days} ${price.days === 1 ? "dia útil" : "dias úteis"} + 1 dia de postagem` : ""}
                 </p>
               </div>
               <Clock className="h-10 w-10 text-brand/40" />
