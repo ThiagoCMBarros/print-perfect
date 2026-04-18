@@ -50,13 +50,16 @@ function ProductsPage() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    console.log("[produtos.index] fetching", { categorySlug: search.category, q: search.q });
     Promise.all([getCachedCategories(), getCachedProducts({ categorySlug: search.category, q: search.q })])
       .then(([cats, prods]) => {
+        console.log("[produtos.index] fetched", { cats: cats.length, prods: prods.length, cancelled });
         if (cancelled) return;
         setCategories(cats);
         setProducts(prods as ProductRow[]);
       })
-      .finally(() => !cancelled && setLoading(false));
+      .catch((err) => console.error("[produtos.index] fetch error", err))
+      .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [search.category, search.q]);
 
