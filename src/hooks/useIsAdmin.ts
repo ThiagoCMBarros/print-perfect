@@ -12,17 +12,18 @@ async function fetchIsAdmin(userId: string): Promise<boolean> {
   const cached = cache.get(userId);
   if (cached && cached.expires > Date.now()) return cached.value;
   if (cached?.promise) return cached.promise;
-  const promise = supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .eq("role", "admin")
-    .maybeSingle()
-    .then(({ data }) => {
-      const value = !!data;
-      cache.set(userId, { value, expires: Date.now() + TTL });
-      return value;
-    });
+  const promise = Promise.resolve(
+    supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle()
+  ).then(({ data }) => {
+    const value = !!data;
+    cache.set(userId, { value, expires: Date.now() + TTL });
+    return value;
+  });
   cache.set(userId, { value: cached?.value ?? false, expires: 0, promise });
   return promise;
 }
