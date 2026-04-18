@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoader } from "@/components/site/PageLoader";
 import { type DBCategory } from "@/lib/catalog";
 import { getCachedCategories, getCachedProducts } from "@/lib/catalog-cache";
