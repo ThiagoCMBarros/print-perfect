@@ -38,6 +38,7 @@ const SECTIONS: { category: string; title: string; description: string; icon: Re
     description: "Razão social, CNPJ e endereço",
     icon: Building2,
     fields: [
+      { key: "trade_name", label: "Nome fantasia" },
       { key: "legal_name", label: "Razão social" },
       { key: "cnpj", label: "CNPJ" },
       { key: "ie", label: "Inscrição estadual" },

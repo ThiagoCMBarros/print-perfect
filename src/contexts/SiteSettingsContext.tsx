@@ -11,6 +11,7 @@ export type SiteSettings = {
     primary_foreground: string;
   };
   company: {
+    trade_name: string;
     legal_name: string;
     cnpj: string;
     ie: string;
@@ -36,7 +37,7 @@ const DEFAULTS: SiteSettings = {
     primary_color: "#2563eb",
     primary_foreground: "#ffffff",
   },
-  company: { legal_name: "GráficaPro Ltda", cnpj: "", ie: "", address: "" },
+  company: { trade_name: "GráficaPro", legal_name: "GráficaPro Ltda", cnpj: "", ie: "", address: "" },
   contact: {
     phone: "(11) 4000-0000",
     whatsapp: "5511976905156",
