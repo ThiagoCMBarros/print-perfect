@@ -1,6 +1,39 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Background, Layer, TemplateMeta } from "./types";
+import type { Background, Layer, TemplateMeta, TextLayer } from "./types";
 import { gradientCss } from "./types";
+
+function TextContent({ layer, onMeasured }: { layer: TextLayer; onMeasured: (h: number) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => onMeasured(el.scrollHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [layer.content, layer.fontSize, layer.fontWeight, layer.fontFamily, layer.w, onMeasured]);
+  return (
+    <div
+      ref={ref}
+      style={{
+        color: layer.color,
+        fontSize: layer.fontSize,
+        fontWeight: layer.fontWeight,
+        fontFamily: layer.fontFamily,
+        textAlign: layer.align,
+        lineHeight: 1.2,
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-word",
+        pointerEvents: "none",
+        width: "100%",
+        minHeight: "100%",
+      }}
+    >
+      {layer.content || "—"}
+    </div>
+  );
+}
 
 type Props = {
   template: TemplateMeta;
