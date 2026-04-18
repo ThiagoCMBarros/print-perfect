@@ -63,7 +63,9 @@ export function SiteHeader() {
         </div>
 
         <div className="ml-auto flex items-center gap-1 md:ml-0">
-          {user ? (
+          {!mounted ? (
+            <div className="hidden h-9 w-24 sm:block" aria-hidden />
+          ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
