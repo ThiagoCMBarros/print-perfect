@@ -30,6 +30,7 @@ import { Route as ProdutosSlugRouteImport } from './routes/produtos.$slug'
 import { Route as PedidoIdRouteImport } from './routes/pedido.$id'
 import { Route as ContaPedidosRouteImport } from './routes/conta.pedidos'
 import { Route as ContaEnderecosRouteImport } from './routes/conta.enderecos'
+import { Route as AdminPersonalizacaoRouteImport } from './routes/admin.personalizacao'
 import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
 import { Route as AdminOpcoesRouteImport } from './routes/admin.opcoes'
 import { Route as AdminIntegracoesRouteImport } from './routes/admin.integracoes'
@@ -144,6 +145,11 @@ const ContaEnderecosRoute = ContaEnderecosRouteImport.update({
   path: '/enderecos',
   getParentRoute: () => ContaRoute,
 } as any)
+const AdminPersonalizacaoRoute = AdminPersonalizacaoRouteImport.update({
+  id: '/personalizacao',
+  path: '/personalizacao',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPedidosRoute = AdminPedidosRouteImport.update({
   id: '/pedidos',
   path: '/pedidos',
@@ -206,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/admin/integracoes': typeof AdminIntegracoesRoute
   '/admin/opcoes': typeof AdminOpcoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
+  '/admin/personalizacao': typeof AdminPersonalizacaoRoute
   '/conta/enderecos': typeof ContaEnderecosRoute
   '/conta/pedidos': typeof ContaPedidosRouteWithChildren
   '/pedido/$id': typeof PedidoIdRoute
@@ -235,6 +242,7 @@ export interface FileRoutesByTo {
   '/admin/integracoes': typeof AdminIntegracoesRoute
   '/admin/opcoes': typeof AdminOpcoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
+  '/admin/personalizacao': typeof AdminPersonalizacaoRoute
   '/conta/enderecos': typeof ContaEnderecosRoute
   '/conta/pedidos': typeof ContaPedidosRouteWithChildren
   '/pedido/$id': typeof PedidoIdRoute
@@ -267,6 +275,7 @@ export interface FileRoutesById {
   '/admin/integracoes': typeof AdminIntegracoesRoute
   '/admin/opcoes': typeof AdminOpcoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
+  '/admin/personalizacao': typeof AdminPersonalizacaoRoute
   '/conta/enderecos': typeof ContaEnderecosRoute
   '/conta/pedidos': typeof ContaPedidosRouteWithChildren
   '/pedido/$id': typeof PedidoIdRoute
@@ -300,6 +309,7 @@ export interface FileRouteTypes {
     | '/admin/integracoes'
     | '/admin/opcoes'
     | '/admin/pedidos'
+    | '/admin/personalizacao'
     | '/conta/enderecos'
     | '/conta/pedidos'
     | '/pedido/$id'
@@ -329,6 +339,7 @@ export interface FileRouteTypes {
     | '/admin/integracoes'
     | '/admin/opcoes'
     | '/admin/pedidos'
+    | '/admin/personalizacao'
     | '/conta/enderecos'
     | '/conta/pedidos'
     | '/pedido/$id'
@@ -360,6 +371,7 @@ export interface FileRouteTypes {
     | '/admin/integracoes'
     | '/admin/opcoes'
     | '/admin/pedidos'
+    | '/admin/personalizacao'
     | '/conta/enderecos'
     | '/conta/pedidos'
     | '/pedido/$id'
@@ -540,6 +552,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContaEnderecosRouteImport
       parentRoute: typeof ContaRoute
     }
+    '/admin/personalizacao': {
+      id: '/admin/personalizacao'
+      path: '/personalizacao'
+      fullPath: '/admin/personalizacao'
+      preLoaderRoute: typeof AdminPersonalizacaoRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/pedidos': {
       id: '/admin/pedidos'
       path: '/pedidos'
@@ -606,6 +625,7 @@ interface AdminRouteChildren {
   AdminIntegracoesRoute: typeof AdminIntegracoesRoute
   AdminOpcoesRoute: typeof AdminOpcoesRoute
   AdminPedidosRoute: typeof AdminPedidosRoute
+  AdminPersonalizacaoRoute: typeof AdminPersonalizacaoRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminProdutosIdRoute: typeof AdminProdutosIdRoute
 }
@@ -617,6 +637,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminIntegracoesRoute: AdminIntegracoesRoute,
   AdminOpcoesRoute: AdminOpcoesRoute,
   AdminPedidosRoute: AdminPedidosRoute,
+  AdminPersonalizacaoRoute: AdminPersonalizacaoRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminProdutosIdRoute: AdminProdutosIdRoute,
 }
