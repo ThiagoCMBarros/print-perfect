@@ -58,8 +58,12 @@ function CartPage() {
           <div className="space-y-3">
             {items.map((it) => (
               <div key={it.id} className="flex gap-4 rounded-2xl border bg-card p-4">
-                <div className="grid h-20 w-20 shrink-0 place-items-center rounded-xl text-4xl" style={{ backgroundImage: "var(--gradient-hero)" }}>
-                  {it.products?.image ?? "📦"}
+                <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-xl text-4xl" style={{ backgroundImage: "var(--gradient-hero)" }}>
+                  {it.products?.image && /^(https?:|\/)/.test(it.products.image) ? (
+                    <img src={it.products.image} alt={it.products?.name ?? "Produto"} className="h-full w-full object-cover" />
+                  ) : (
+                    <span>{it.products?.image ?? "📦"}</span>
+                  )}
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold">{it.products?.name ?? "Produto"}</p>
