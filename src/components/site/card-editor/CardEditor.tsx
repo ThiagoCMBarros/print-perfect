@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PenTool, Download, Upload as UploadIcon, Save, Loader2, Type, ImagePlus } from "lucide-react";
+import { PenTool, Download, Save, Loader2, Type, ImagePlus } from "lucide-react";
 import { CanvasStage } from "./CanvasStage";
 import { LayerControls } from "./LayerControls";
 import { BackgroundControls } from "./BackgroundControls";
