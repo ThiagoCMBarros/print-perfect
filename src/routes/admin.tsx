@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, Package, Tags, Settings2, ShoppingBag, Shield, ArrowLeft, BarChart3, Users } from "lucide-react";
+import { Loader2, Package, Tags, Settings2, ShoppingBag, Shield, ArrowLeft, BarChart3, Users, Plug } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
