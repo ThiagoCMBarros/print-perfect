@@ -432,6 +432,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          image: string | null
           label: string
           numeric_value: number | null
           option_type: Database["public"]["Enums"]["option_type"]
@@ -442,6 +443,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          image?: string | null
           label: string
           numeric_value?: number | null
           option_type: Database["public"]["Enums"]["option_type"]
@@ -452,6 +454,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          image?: string | null
           label?: string
           numeric_value?: number | null
           option_type?: Database["public"]["Enums"]["option_type"]
