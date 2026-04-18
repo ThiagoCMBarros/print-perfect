@@ -46,8 +46,12 @@ function ProductsPage() {
   const [categories, setCategories] = useState<DBCategory[]>([]);
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     let cancelled = false;
     setLoading(true);
     Promise.all([getCachedCategories(), getCachedProducts({ categorySlug: search.category, q: search.q })])
@@ -56,9 +60,10 @@ function ProductsPage() {
         setCategories(cats);
         setProducts(prods as ProductRow[]);
       })
-      .finally(() => !cancelled && setLoading(false));
+      .catch((err) => console.error("[produtos.index] fetch error", err))
+      .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [search.category, search.q]);
+  }, [mounted, search.category, search.q]);
 
   type SearchT = z.infer<typeof searchSchema>;
   const update = (patch: Partial<SearchT>) =>
