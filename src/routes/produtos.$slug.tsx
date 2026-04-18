@@ -210,9 +210,20 @@ function ProductPage() {
       <section className="container-page grid gap-10 py-8 lg:grid-cols-2">
         <div className="space-y-3">
           <div
-            className="grid aspect-square place-items-center overflow-hidden rounded-3xl border"
+            className="relative grid aspect-square place-items-center overflow-hidden rounded-3xl border"
             style={{ backgroundImage: "var(--gradient-hero)" }}
           >
+            {isAdmin && (
+              <Link
+                to="/admin/produtos/$id"
+                params={{ id: product.id }}
+                title="Editar produto"
+                aria-label="Editar produto"
+                className="absolute right-4 top-4 z-10 grid h-10 w-10 place-items-center rounded-full bg-background/90 text-foreground shadow-md ring-1 ring-border backdrop-blur transition hover:bg-brand hover:text-brand-foreground"
+              >
+                <Pencil className="h-4 w-4" />
+              </Link>
+            )}
             {heroImage ? (
               <img
                 src={heroImage}
