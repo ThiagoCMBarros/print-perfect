@@ -189,7 +189,7 @@ function AdminPersonalizacao() {
               const isLogo = section.category === "branding" && f.key === "logo_url";
               const isFavicon = section.category === "branding" && f.key === "favicon_url";
               return (
-                <div key={k} className={f.type === "textarea" ? "md:col-span-2 space-y-2" : "space-y-2"}>
+                <div key={k} className={f.type === "textarea" || f.type === "image" ? "md:col-span-2 space-y-2" : "space-y-2"}>
                   <Label htmlFor={k}>{f.label}</Label>
                   {f.type === "textarea" ? (
                     <Textarea id={k} value={draft[k] ?? ""} onChange={(e) => setVal(section.category, f.key, e.target.value)} rows={2} />
@@ -198,40 +198,50 @@ function AdminPersonalizacao() {
                       <Input type="color" value={draft[k] || "#2563eb"} onChange={(e) => setVal(section.category, f.key, e.target.value)} className="h-10 w-16 p-1" />
                       <Input value={draft[k] ?? ""} onChange={(e) => setVal(section.category, f.key, e.target.value)} className="font-mono" />
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <Input id={k} value={draft[k] ?? ""} onChange={(e) => setVal(section.category, f.key, e.target.value)} />
-                        {(isLogo || isFavicon) && (
-                          <>
-                            <input
-                              ref={isLogo ? logoInputRef : faviconInputRef}
-                              type="file"
-                              accept={isFavicon ? "image/png,image/x-icon,image/svg+xml" : "image/*"}
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) uploadAsset(file, isLogo ? "logo_url" : "favicon_url");
-                                e.target.value = "";
-                              }}
-                            />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="icon"
-                              onClick={() => (isLogo ? logoInputRef : faviconInputRef).current?.click()}
-                              disabled={uploading === (isLogo ? "logo_url" : "favicon_url")}
-                              title="Enviar arquivo"
-                            >
-                              {uploading === (isLogo ? "logo_url" : "favicon_url") ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                            </Button>
-                          </>
+                  ) : f.type === "image" ? (
+                    <div className="flex items-center gap-4">
+                      {draft[k] ? (
+                        <img src={draft[k]} alt={f.label} className="h-16 w-16 rounded border bg-white object-contain p-1" />
+                      ) : (
+                        <div className="flex h-16 w-16 items-center justify-center rounded border bg-muted text-xs text-muted-foreground">
+                          sem imagem
+                        </div>
+                      )}
+                      <input
+                        ref={isLogo ? logoInputRef : faviconInputRef}
+                        type="file"
+                        accept={isFavicon ? "image/png,image/x-icon,image/svg+xml" : "image/*"}
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) uploadAsset(file, isLogo ? "logo_url" : "favicon_url");
+                          e.target.value = "";
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => (isLogo ? logoInputRef : faviconInputRef).current?.click()}
+                        disabled={uploading === (isLogo ? "logo_url" : "favicon_url")}
+                      >
+                        {uploading === (isLogo ? "logo_url" : "favicon_url") ? (
+                          <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando…</>
+                        ) : (
+                          <><Upload className="mr-2 h-4 w-4" /> {draft[k] ? "Trocar imagem" : "Enviar imagem"}</>
                         )}
-                      </div>
-                      {(isLogo || isFavicon) && draft[k] && (
-                        <img src={draft[k]} alt="preview" className="h-12 w-auto rounded border bg-white object-contain p-1" />
+                      </Button>
+                      {draft[k] && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => setVal("branding", isLogo ? "logo_url" : "favicon_url", "")}
+                        >
+                          Remover
+                        </Button>
                       )}
                     </div>
+                  ) : (
+                    <Input id={k} value={draft[k] ?? ""} onChange={(e) => setVal(section.category, f.key, e.target.value)} />
                   )}
                 </div>
               );
