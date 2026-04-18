@@ -1,0 +1,1 @@
+DELETE FROM public.integration_settings WHERE category = 'whatsapp';
