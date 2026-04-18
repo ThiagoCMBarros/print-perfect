@@ -29,6 +29,7 @@ const tabs = [
   { to: "/admin/opcoes", label: "Opções", icon: Settings2, exact: false },
   { to: "/admin/pedidos", label: "Pedidos", icon: ShoppingBag, exact: false },
   { to: "/admin/clientes", label: "Clientes", icon: Users, exact: false },
+  { to: "/admin/integracoes", label: "Integrações", icon: Plug, exact: false },
 ] as const;
 
 function AdminLayout() {
