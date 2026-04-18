@@ -10,7 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchCategories, fetchProducts, type DBCategory } from "@/lib/catalog";
+import { PageLoader } from "@/components/site/PageLoader";
+import { type DBCategory } from "@/lib/catalog";
+import { getCachedCategories, getCachedProducts } from "@/lib/catalog-cache";
 import type { Tables } from "@/integrations/supabase/types";
 
 const searchSchema = z.object({
@@ -49,7 +51,7 @@ function ProductsPage() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    Promise.all([fetchCategories(), fetchProducts({ categorySlug: search.category, q: search.q })])
+    Promise.all([getCachedCategories(), getCachedProducts({ categorySlug: search.category, q: search.q })])
       .then(([cats, prods]) => {
         if (cancelled) return;
         setCategories(cats);
@@ -226,11 +228,7 @@ function ProductsPage() {
             )}
 
             {loading ? (
-              <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton key={i} className="h-80 rounded-2xl" />
-                ))}
-              </div>
+              <PageLoader />
             ) : filtered.length === 0 ? (
               <div className="mt-12 rounded-2xl border border-dashed bg-card p-12 text-center">
                 <p className="font-semibold">Nenhum produto encontrado</p>
