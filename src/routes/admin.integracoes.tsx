@@ -33,6 +33,7 @@ function AdminIntegrations() {
       const { data, error } = await supabase
         .from("integration_settings")
         .select("id,category,key,value,description")
+        .not("category", "in", "(branding,company,contact,social,seo)")
         .order("category")
         .order("key");
       if (error) {
