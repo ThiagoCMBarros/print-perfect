@@ -7,6 +7,7 @@ import { PenTool, Download, Save, Loader2, Type, ImagePlus } from "lucide-react"
 import { CanvasStage } from "./CanvasStage";
 import { LayerControls } from "./LayerControls";
 import { BackgroundControls } from "./BackgroundControls";
+import { LayersPanel } from "./LayersPanel";
 import { renderToBlob } from "./exportCanvas";
 import {
   TEMPLATES,
@@ -71,6 +72,35 @@ export function CardEditor({
   const deleteLayer = (id: string) => {
     setLayers((prev) => prev.filter((l) => l.id !== id));
     setSelectedId(null);
+  };
+
+  const duplicateLayer = (id: string) => {
+    setLayers((prev) => {
+      const layer = prev.find((l) => l.id === id);
+      if (!layer) return prev;
+      const copy: Layer = { ...layer, id: crypto.randomUUID(), x: layer.x + 12, y: layer.y + 12 } as Layer;
+      const idx = prev.findIndex((l) => l.id === id);
+      const next = [...prev];
+      next.splice(idx + 1, 0, copy);
+      setSelectedId(copy.id);
+      return next;
+    });
+  };
+
+  const reorderLayer = (id: string, action: "front" | "back" | "forward" | "backward") => {
+    setLayers((prev) => {
+      const idx = prev.findIndex((l) => l.id === id);
+      if (idx === -1) return prev;
+      const next = [...prev];
+      const [item] = next.splice(idx, 1);
+      let newIdx = idx;
+      if (action === "front") newIdx = next.length;
+      else if (action === "back") newIdx = 0;
+      else if (action === "forward") newIdx = Math.min(next.length, idx + 1);
+      else if (action === "backward") newIdx = Math.max(0, idx - 1);
+      next.splice(newIdx, 0, item);
+      return next;
+    });
   };
 
   const addText = () => {
@@ -181,6 +211,15 @@ export function CardEditor({
                 <p className="mt-1 text-[10px] text-muted-foreground">Editando o produto selecionado.</p>
               )}
             </div>
+
+            <LayersPanel
+              layers={layers}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              onDuplicate={duplicateLayer}
+              onDelete={deleteLayer}
+              onReorder={reorderLayer}
+            />
 
             {/* Painel da camada selecionada OU controles de fundo */}
             {selected ? (
