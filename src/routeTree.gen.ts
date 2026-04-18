@@ -36,6 +36,7 @@ import { Route as AdminIntegracoesRouteImport } from './routes/admin.integracoes
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminClientesRouteImport } from './routes/admin.clientes'
 import { Route as AdminCategoriasRouteImport } from './routes/admin.categorias'
+import { Route as ContaPedidosIdRouteImport } from './routes/conta.pedidos.$id'
 import { Route as AdminProdutosIdRouteImport } from './routes/admin.produtos.$id'
 
 const TermosRoute = TermosRouteImport.update({
@@ -173,6 +174,11 @@ const AdminCategoriasRoute = AdminCategoriasRouteImport.update({
   path: '/categorias',
   getParentRoute: () => AdminRoute,
 } as any)
+const ContaPedidosIdRoute = ContaPedidosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ContaPedidosRoute,
+} as any)
 const AdminProdutosIdRoute = AdminProdutosIdRouteImport.update({
   id: '/produtos/$id',
   path: '/produtos/$id',
@@ -201,13 +207,14 @@ export interface FileRoutesByFullPath {
   '/admin/opcoes': typeof AdminOpcoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/conta/enderecos': typeof ContaEnderecosRoute
-  '/conta/pedidos': typeof ContaPedidosRoute
+  '/conta/pedidos': typeof ContaPedidosRouteWithChildren
   '/pedido/$id': typeof PedidoIdRoute
   '/produtos/$slug': typeof ProdutosSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/conta/': typeof ContaIndexRoute
   '/produtos/': typeof ProdutosIndexRoute
   '/admin/produtos/$id': typeof AdminProdutosIdRoute
+  '/conta/pedidos/$id': typeof ContaPedidosIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -229,13 +236,14 @@ export interface FileRoutesByTo {
   '/admin/opcoes': typeof AdminOpcoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/conta/enderecos': typeof ContaEnderecosRoute
-  '/conta/pedidos': typeof ContaPedidosRoute
+  '/conta/pedidos': typeof ContaPedidosRouteWithChildren
   '/pedido/$id': typeof PedidoIdRoute
   '/produtos/$slug': typeof ProdutosSlugRoute
   '/admin': typeof AdminIndexRoute
   '/conta': typeof ContaIndexRoute
   '/produtos': typeof ProdutosIndexRoute
   '/admin/produtos/$id': typeof AdminProdutosIdRoute
+  '/conta/pedidos/$id': typeof ContaPedidosIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -260,13 +268,14 @@ export interface FileRoutesById {
   '/admin/opcoes': typeof AdminOpcoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/conta/enderecos': typeof ContaEnderecosRoute
-  '/conta/pedidos': typeof ContaPedidosRoute
+  '/conta/pedidos': typeof ContaPedidosRouteWithChildren
   '/pedido/$id': typeof PedidoIdRoute
   '/produtos/$slug': typeof ProdutosSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/conta/': typeof ContaIndexRoute
   '/produtos/': typeof ProdutosIndexRoute
   '/admin/produtos/$id': typeof AdminProdutosIdRoute
+  '/conta/pedidos/$id': typeof ContaPedidosIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -299,6 +308,7 @@ export interface FileRouteTypes {
     | '/conta/'
     | '/produtos/'
     | '/admin/produtos/$id'
+    | '/conta/pedidos/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/conta'
     | '/produtos'
     | '/admin/produtos/$id'
+    | '/conta/pedidos/$id'
   id:
     | '__root__'
     | '/'
@@ -357,6 +368,7 @@ export interface FileRouteTypes {
     | '/conta/'
     | '/produtos/'
     | '/admin/produtos/$id'
+    | '/conta/pedidos/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -570,6 +582,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/conta/pedidos/$id': {
+      id: '/conta/pedidos/$id'
+      path: '/$id'
+      fullPath: '/conta/pedidos/$id'
+      preLoaderRoute: typeof ContaPedidosIdRouteImport
+      parentRoute: typeof ContaPedidosRoute
+    }
     '/admin/produtos/$id': {
       id: '/admin/produtos/$id'
       path: '/produtos/$id'
@@ -604,15 +623,27 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface ContaPedidosRouteChildren {
+  ContaPedidosIdRoute: typeof ContaPedidosIdRoute
+}
+
+const ContaPedidosRouteChildren: ContaPedidosRouteChildren = {
+  ContaPedidosIdRoute: ContaPedidosIdRoute,
+}
+
+const ContaPedidosRouteWithChildren = ContaPedidosRoute._addFileChildren(
+  ContaPedidosRouteChildren,
+)
+
 interface ContaRouteChildren {
   ContaEnderecosRoute: typeof ContaEnderecosRoute
-  ContaPedidosRoute: typeof ContaPedidosRoute
+  ContaPedidosRoute: typeof ContaPedidosRouteWithChildren
   ContaIndexRoute: typeof ContaIndexRoute
 }
 
 const ContaRouteChildren: ContaRouteChildren = {
   ContaEnderecosRoute: ContaEnderecosRoute,
-  ContaPedidosRoute: ContaPedidosRoute,
+  ContaPedidosRoute: ContaPedidosRouteWithChildren,
   ContaIndexRoute: ContaIndexRoute,
 }
 
