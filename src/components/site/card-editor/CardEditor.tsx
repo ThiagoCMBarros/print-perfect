@@ -63,6 +63,7 @@ export function CardEditor({
   enableSave = false,
   saveLabel = "Salvar arte e usar no pedido",
   customizationMode = false,
+  initialImageUrl,
 }: Props) {
   const initial: TemplateKey =
     defaultTemplate ?? (categorySlug ? SLUG_TO_TEMPLATE[categorySlug] : undefined) ?? "card";
