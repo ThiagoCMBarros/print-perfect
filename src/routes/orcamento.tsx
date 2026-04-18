@@ -210,14 +210,63 @@ function OrcamentoPage() {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="file">Arquivo de referência (opcional)</Label>
+                  <input
+                    ref={fileInputRef}
+                    id="file"
+                    type="file"
+                    accept={ACCEPTED_TYPES}
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  {!file ? (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-input bg-background px-4 py-6 text-sm text-muted-foreground transition-colors hover:border-brand hover:text-brand"
+                    >
+                      <Upload className="h-4 w-4" />
+                      Anexar arquivo (imagem, PDF, AI, PSD…) — até 20MB
+                    </button>
+                  ) : (
+                    <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 px-3 py-2 text-sm">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Paperclip className="h-4 w-4 shrink-0 text-brand" />
+                        <span className="truncate">{file.name}</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeFile}
+                        className="text-muted-foreground hover:text-destructive"
+                        aria-label="Remover arquivo"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <Button
                   type="submit"
                   size="lg"
                   className="w-full bg-[#25D366] text-white hover:bg-[#1ebe57]"
-                  disabled={!isValid}
+                  disabled={!isValid || uploading}
                 >
-                  <MessageCircle className="h-5 w-5" />
-                  Enviar pelo WhatsApp
+                  {uploading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Enviando arquivo...
+                    </>
+                  ) : (
+                    <>
+                      <MessageCircle className="h-5 w-5" />
+                      Enviar pelo WhatsApp
+                    </>
+                  )}
                 </Button>
 
                 <p className="text-center text-xs text-muted-foreground">
