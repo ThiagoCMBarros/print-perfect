@@ -29,6 +29,7 @@ export type AddItemInput = {
   unit_price: number;
   total_price: number;
   qty: number;
+  artwork_path?: string | null;
 };
 
 const Ctx = createContext<CartCtx | undefined>(undefined);
