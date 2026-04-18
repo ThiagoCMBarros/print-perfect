@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PenTool, Download, Save, Loader2, Type, ImagePlus } from "lucide-react";
+import { PenTool, Download, Save, Loader2, Type, ImagePlus, RotateCw } from "lucide-react";
 import { CanvasStage } from "./CanvasStage";
 import { LayerControls } from "./LayerControls";
 import { BackgroundControls } from "./BackgroundControls";
