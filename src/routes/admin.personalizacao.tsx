@@ -16,7 +16,7 @@ export const Route = createFileRoute("/admin/personalizacao")({
 
 type Row = { id: string; category: string; key: string; value: unknown };
 
-const SECTIONS: { category: string; title: string; description: string; icon: React.ElementType; fields: { key: string; label: string; type?: "text" | "textarea" | "color" }[] }[] = [
+const SECTIONS: { category: string; title: string; description: string; icon: React.ElementType; fields: { key: string; label: string; type?: "text" | "textarea" | "color" | "image" }[] }[] = [
   {
     category: "branding",
     title: "Identidade visual",
