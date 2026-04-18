@@ -26,7 +26,8 @@ const SECTIONS: { category: string; title: string; description: string; icon: Re
     fields: [
       { key: "site_name", label: "Nome do site" },
       { key: "tagline", label: "Slogan" },
-      { key: "logo_url", label: "Logotipo", type: "image" as const },
+      { key: "logo_url", label: "Logotipo (tema claro)", type: "image" as const },
+      { key: "logo_url_dark", label: "Logotipo (tema escuro)", type: "image" as const },
       { key: "favicon_url", label: "Favicon", type: "image" as const },
       { key: "primary_color", label: "Cor primária", type: "color" },
       { key: "primary_foreground", label: "Cor do texto sobre a primária", type: "color" },
