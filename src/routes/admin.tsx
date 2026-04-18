@@ -4,7 +4,7 @@ import { Loader2, Package, Tags, Settings2, ShoppingBag, Shield, ArrowLeft, BarC
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { verifyAdmin } from "@/utils/admin.functions";
+
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async () => {
