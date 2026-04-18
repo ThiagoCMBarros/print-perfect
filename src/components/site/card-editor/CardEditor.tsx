@@ -240,7 +240,7 @@ export function CardEditor({
                 </Button>
               )}
               <label className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted ${customizationMode ? "col-span-2" : ""}`}>
-                <ImagePlus className="h-3.5 w-3.5" /> Adicionar logo
+                <ImagePlus className="h-3.5 w-3.5" /> Adicionar imagem
                 <input type="file" accept="image/*" className="hidden"
                   onChange={(e) => e.target.files?.[0] && handleLogoUpload(e.target.files[0])} />
               </label>

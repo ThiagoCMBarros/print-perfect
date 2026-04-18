@@ -64,6 +64,7 @@ export function calcPrice(
   finishId: string | null,
   quantityId: string | null,
   urgency: "standard" | "express",
+  customUnits?: number | null,
 ) {
   const sizes = getOptions(product, "size");
   const materials = getOptions(product, "material");
@@ -74,15 +75,34 @@ export function calcPrice(
   const finish = finishes.find((f) => f.id === finishId) ?? finishes[0];
   const qty = quantities.find((q) => q.id === quantityId) ?? quantities[0];
   const u = urgency === "express" ? 1.35 : 1;
-  const total =
+
+  const baseMultipliers =
     Number(product.base_price) *
     Number(size?.price_modifier ?? 1) *
     Number(material?.price_modifier ?? 1) *
     Number(finish?.price_modifier ?? 1) *
-    Number(qty?.price_modifier ?? 1) *
     u;
-  const units = Number(qty?.numeric_value ?? 1);
-  const unit = total / units;
+
+  let total: number;
+  let units: number;
+
+  if (customUnits && customUnits > 0) {
+    // Use the best per-unit price tier available (largest qty option) as reference.
+    const tiers = quantities
+      .filter((q) => Number(q.numeric_value ?? 0) > 0 && Number(q.price_modifier ?? 0) > 0)
+      .sort((a, b) => Number(b.numeric_value) - Number(a.numeric_value));
+    const reference = tiers[0] ?? qty;
+    const refUnits = Number(reference?.numeric_value ?? 1);
+    const refTotal = baseMultipliers * Number(reference?.price_modifier ?? 1);
+    const perUnit = refTotal / Math.max(1, refUnits);
+    units = Math.floor(customUnits);
+    total = perUnit * units;
+  } else {
+    total = baseMultipliers * Number(qty?.price_modifier ?? 1);
+    units = Number(qty?.numeric_value ?? 1);
+  }
+
+  const unit = total / Math.max(1, units);
   const complexity = effectiveComplexity(
     (product as DBProduct & { complexity?: Complexity | null }).complexity,
     product.categories?.complexity,

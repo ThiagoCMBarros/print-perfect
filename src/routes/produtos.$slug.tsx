@@ -47,6 +47,7 @@ function ProductPage() {
   const [finishId, setFinishId] = useState<string | null>(null);
   const [quantityId, setQuantityId] = useState<string | null>(null);
   const [urgency, setUrgency] = useState<"standard" | "express">("standard");
+  const [customQty, setCustomQty] = useState<string>("");
   const [adding, setAdding] = useState(false);
   const [artworkPath, setArtworkPath] = useState<string | null>(null);
   const [artworkLabel, setArtworkLabel] = useState<string | null>(null);
@@ -69,9 +70,14 @@ function ProductPage() {
     return () => { cancelled = true; };
   }, [slug]);
 
+  const customUnits = useMemo(() => {
+    const n = parseInt(customQty.replace(/\D/g, ""), 10);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }, [customQty]);
+
   const price = useMemo(
-    () => product ? calcPrice(product, sizeId, materialId, finishId, quantityId, urgency) : null,
-    [product, sizeId, materialId, finishId, quantityId, urgency],
+    () => product ? calcPrice(product, sizeId, materialId, finishId, quantityId, urgency, customUnits) : null,
+    [product, sizeId, materialId, finishId, quantityId, urgency, customUnits],
   );
 
   if (loading) {
@@ -231,9 +237,31 @@ function ProductPage() {
                 options={finishes.map((o) => ({ id: o.id, label: o.label }))} />
             )}
             {quantities.length > 0 && (
-              <OptionGroup label="Quantidade" value={quantityId} onChange={setQuantityId}
-                options={quantities.map((o) => ({ id: o.id, label: o.label }))} />
+              <OptionGroup
+                label="Quantidade"
+                value={customUnits ? null : quantityId}
+                onChange={(v) => { setQuantityId(v); setCustomQty(""); }}
+                options={quantities.map((o) => ({ id: o.id, label: o.label }))}
+              />
             )}
+
+            <div>
+              <p className="mb-2 text-sm font-semibold">Quantidade personalizada</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={1}
+                  inputMode="numeric"
+                  placeholder="Ex.: 15000"
+                  value={customQty}
+                  onChange={(e) => setCustomQty(e.target.value)}
+                  className="w-40 rounded-xl border bg-background px-3 py-2 text-sm focus:border-brand focus:outline-none"
+                />
+                <span className="text-xs text-muted-foreground">
+                  unidades (sobrepõe a opção acima)
+                </span>
+              </div>
+            </div>
 
             <div>
               <p className="mb-2 text-sm font-semibold">Prazo de produção</p>
