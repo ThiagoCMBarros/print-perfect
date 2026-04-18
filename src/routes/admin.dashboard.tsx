@@ -13,7 +13,7 @@ export const Route = createFileRoute("/admin/dashboard")({
 type Order = Tables<"orders">;
 type OrderItem = Tables<"order_items">;
 
-const COLORS = ["hsl(var(--brand))", "hsl(var(--brand) / 0.7)", "hsl(var(--brand) / 0.5)", "hsl(var(--brand) / 0.35)", "hsl(var(--brand) / 0.2)"];
+const COLORS = ["var(--brand)", "color-mix(in oklab, var(--brand) 70%, transparent)", "color-mix(in oklab, var(--brand) 50%, transparent)", "color-mix(in oklab, var(--brand) 35%, transparent)", "color-mix(in oklab, var(--brand) 20%, transparent)"];
 
 function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -101,7 +101,7 @@ function AdminDashboard() {
               <XAxis dataKey="date" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R$${v}`} />
               <Tooltip formatter={(v: number) => formatBRL(v)} />
-              <Line type="monotone" dataKey="faturamento" stroke="hsl(var(--brand))" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="faturamento" stroke="var(--brand)" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </Card>
@@ -113,7 +113,7 @@ function AdminDashboard() {
               <XAxis dataKey="date" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="pedidos" fill="hsl(var(--brand))" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="pedidos" fill="var(--brand)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
