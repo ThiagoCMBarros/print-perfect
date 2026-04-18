@@ -14,6 +14,7 @@ import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/catalog";
 import { calculateShipping, FREE_SHIPPING_AMOUNT } from "@/lib/shipping";
+import { productionDaysForCart, effectiveComplexity } from "@/lib/production-time";
 
 const addressSchema = z.object({
   recipient: z.string().trim().min(2).max(120),
