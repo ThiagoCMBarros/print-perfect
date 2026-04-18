@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatBRL } from "@/lib/catalog";
+import { ArtworkPreview } from "@/components/site/ArtworkPreview";
+import { SLUG_TO_TEMPLATE } from "@/components/site/card-editor/types";
 
 export const Route = createFileRoute("/carrinho")({
   head: () => ({ meta: [{ title: "Carrinho — GráficaPro" }] }),
@@ -56,38 +58,59 @@ function CartPage() {
         <h1 className="font-display text-3xl font-bold">Carrinho</h1>
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="space-y-3">
-            {items.map((it) => (
-              <div key={it.id} className="flex gap-4 rounded-2xl border bg-card p-4">
-                <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-xl text-4xl" style={{ backgroundImage: "var(--gradient-hero)" }}>
-                  {it.products?.image && /^(https?:|\/)/.test(it.products.image) ? (
-                    <img src={it.products.image} alt={it.products?.name ?? "Produto"} className="h-full w-full object-cover" />
-                  ) : (
-                    <span>{it.products?.image ?? "📦"}</span>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold">{it.products?.name ?? "Produto"}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Urgência: {it.urgency === "express" ? "Express" : "Padrão"} · {formatBRL(Number(it.unit_price))} / un
-                  </p>
-                  <div className="mt-3 flex items-center gap-2">
-                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => updateQty(it.id, it.qty - 1)}>
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <span className="w-8 text-center text-sm font-semibold">{it.qty}</span>
-                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => updateQty(it.id, it.qty + 1)}>
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                    <button onClick={() => remove(it.id)} className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive">
-                      <Trash2 className="h-3 w-3" /> Remover
-                    </button>
+            {items.map((it) => {
+              const slug = it.products?.slug ?? "";
+              const fmt = SLUG_TO_TEMPLATE[slug]
+                ?? (slug.includes("cartao") ? "card"
+                  : slug.includes("flyer") || slug.includes("panfleto") ? "flyer"
+                  : slug.includes("banner") ? "banner"
+                  : slug.includes("adesivo") ? "sticker"
+                  : "card");
+              return (
+                <div key={it.id} className="flex gap-4 rounded-2xl border bg-card p-4">
+                  <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-xl text-4xl" style={{ backgroundImage: "var(--gradient-hero)" }}>
+                    {it.products?.image && /^(https?:|\/)/.test(it.products.image) ? (
+                      <img src={it.products.image} alt={it.products?.name ?? "Produto"} className="h-full w-full object-cover" />
+                    ) : (
+                      <span>{it.products?.image ?? "📦"}</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">{it.products?.name ?? "Produto"}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Urgência: {it.urgency === "express" ? "Express" : "Padrão"} · {formatBRL(Number(it.unit_price))} / un
+                    </p>
+                    {(it.artwork_path || it.artwork_back_path) && (
+                      <div className="mt-3">
+                        <ArtworkPreview
+                          bucket="cart-artworks"
+                          frontPath={it.artwork_path}
+                          backPath={it.artwork_back_path}
+                          format={fmt}
+                          printSide={it.artwork_back_path ? "front-back" : "front"}
+                          size="sm"
+                        />
+                      </div>
+                    )}
+                    <div className="mt-3 flex items-center gap-2">
+                      <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => updateQty(it.id, it.qty - 1)}>
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="w-8 text-center text-sm font-semibold">{it.qty}</span>
+                      <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => updateQty(it.id, it.qty + 1)}>
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                      <button onClick={() => remove(it.id)} className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive">
+                        <Trash2 className="h-3 w-3" /> Remover
+                      </button>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold">{formatBRL(Number(it.total_price))}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold">{formatBRL(Number(it.total_price))}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <aside className="h-fit rounded-2xl border bg-card p-6 shadow-soft">

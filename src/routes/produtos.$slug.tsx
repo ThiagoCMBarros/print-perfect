@@ -12,6 +12,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CardEditor } from "@/components/site/CardEditor";
+import { ArtworkPreview } from "@/components/site/ArtworkPreview";
+import { SLUG_TO_TEMPLATE } from "@/components/site/card-editor/types";
 import { toast } from "sonner";
 import {
   calcPrice, fetchProductBySlug, formatBRL, getOptions, type ProductWithOptions,
@@ -279,8 +281,8 @@ function ProductPage() {
                 <TabsTrigger value="editor"><PenTool className="mr-1.5 h-3.5 w-3.5" /> Personalizar</TabsTrigger>
                 <TabsTrigger value="help"><MessageCircle className="mr-1.5 h-3.5 w-3.5" /> Ajuda</TabsTrigger>
               </TabsList>
-              <TabsContent value="upload" className="mt-3 rounded-xl border-2 border-dashed bg-background p-6 text-center">
-                <label className="block cursor-pointer">
+              <TabsContent value="upload" className="mt-3 space-y-3">
+                <label className="block cursor-pointer rounded-xl border-2 border-dashed bg-background p-6 text-center">
                   <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
                   <p className="mt-2 text-sm font-medium">
                     {artworkLabel ?? "Arraste sua arte ou clique para selecionar"}
@@ -293,6 +295,18 @@ function ProductPage() {
                     onChange={(e) => e.target.files?.[0] && handleArtworkUpload(e.target.files[0])}
                   />
                 </label>
+                {artworkPath && (
+                  <div className="rounded-xl border bg-background p-3">
+                    <p className="mb-2 text-xs font-medium text-muted-foreground">Pré-visualização do impresso</p>
+                    <ArtworkPreview
+                      bucket="cart-artworks"
+                      frontPath={artworkPath}
+                      format={SLUG_TO_TEMPLATE[product.categories?.slug ?? ""] ?? "card"}
+                      printSide="front"
+                      size="md"
+                    />
+                  </div>
+                )}
               </TabsContent>
               <TabsContent value="editor" className="mt-3 rounded-xl bg-background p-5 text-sm">
                 <p className="font-medium">Editor online</p>
@@ -303,8 +317,21 @@ function ProductPage() {
                   categorySlug={product.categories?.slug}
                   lockTemplate
                   enableSave
+                  customizationMode
                   onSave={handleArtworkSave}
                 />
+                {artworkPath && (
+                  <div className="mt-4 rounded-xl border bg-background p-3">
+                    <p className="mb-2 text-xs font-medium text-muted-foreground">Pré-visualização do impresso</p>
+                    <ArtworkPreview
+                      bucket="cart-artworks"
+                      frontPath={artworkPath}
+                      format={SLUG_TO_TEMPLATE[product.categories?.slug ?? ""] ?? "card"}
+                      printSide="front"
+                      size="md"
+                    />
+                  </div>
+                )}
               </TabsContent>
               <TabsContent value="help" className="mt-3 rounded-xl bg-background p-5 text-sm">
                 <p className="font-medium">Solicite ajuda com a arte</p>
