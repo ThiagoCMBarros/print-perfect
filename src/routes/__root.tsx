@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
 
 import appCss from "../styles.css?url";
 
@@ -83,12 +84,14 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <CartProvider>
-          <Outlet />
-          <Toaster richColors closeButton position="top-right" />
-        </CartProvider>
-      </AuthProvider>
+      <SiteSettingsProvider>
+        <AuthProvider>
+          <CartProvider>
+            <Outlet />
+            <Toaster richColors closeButton position="top-right" />
+          </CartProvider>
+        </AuthProvider>
+      </SiteSettingsProvider>
     </ThemeProvider>
   );
 }

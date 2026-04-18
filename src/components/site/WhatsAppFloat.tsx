@@ -1,14 +1,15 @@
 import { MessageCircle } from "lucide-react";
 import { useLocation } from "@tanstack/react-router";
-
-const WHATSAPP_NUMBER = "5511976905156";
-const DEFAULT_MESSAGE = "Olá! Gostaria de mais informações.";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 export function WhatsAppFloat() {
   const location = useLocation();
-  // Esconde o botão dentro do painel administrativo.
+  const { settings } = useSiteSettings();
   if (location.pathname.startsWith("/admin")) return null;
-  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`;
+  const number = settings.contact.whatsapp?.replace(/\D/g, "");
+  if (!number) return null;
+  const message = settings.contact.whatsapp_message || "Olá!";
+  const url = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 
   return (
     <a

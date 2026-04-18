@@ -12,6 +12,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 const navLinks = [
   { to: "/produtos", label: "Produtos" },
@@ -27,6 +28,7 @@ export function SiteHeader() {
   const { count } = useCart();
   const { isAdmin } = useIsAdmin();
   const { theme, toggle } = useTheme();
+  const { settings } = useSiteSettings();
   const navigate = useNavigate();
 
   useEffect(() => { setMounted(true); }, []);
@@ -35,13 +37,17 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="container-page flex h-16 items-center gap-4">
         <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
-          <span
-            className="grid h-9 w-9 place-items-center rounded-lg text-brand-foreground shadow-soft"
-            style={{ backgroundImage: "var(--gradient-brand)" }}
-          >
-            <Printer className="h-5 w-5" />
-          </span>
-          <span>Gráfica<span className="text-brand">Pro</span></span>
+          {settings.branding.logo_url ? (
+            <img src={settings.branding.logo_url} alt={settings.branding.site_name} className="h-9 w-auto object-contain" />
+          ) : (
+            <span
+              className="grid h-9 w-9 place-items-center rounded-lg text-brand-foreground shadow-soft"
+              style={{ backgroundImage: "var(--gradient-brand)" }}
+            >
+              <Printer className="h-5 w-5" />
+            </span>
+          )}
+          {!settings.branding.logo_url && <span>{settings.branding.site_name}</span>}
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">
