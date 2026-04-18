@@ -227,5 +227,3 @@ export function CardEditor({
   );
 }
 
-// Re-exporta UploadIcon para retrocompat (não usado fora; só evita import morto)
-export { UploadIcon };
