@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Sparkles, MessageCircle, Phone, Clock, CheckCircle2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Sparkles, MessageCircle, Phone, Clock, CheckCircle2, Upload, X, Loader2, Paperclip } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+const ACCEPTED_TYPES = "image/*,application/pdf,.ai,.psd,.cdr,.eps,.svg,.zip,.rar";
 
 const WHATSAPP_NUMBER = "5511976905156";
 
@@ -45,8 +50,26 @@ function OrcamentoPage() {
   const [quantity, setQuantity] = useState("");
   const [deadline, setDeadline] = useState("");
   const [details, setDetails] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const buildMessage = () => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    if (selected.size > MAX_FILE_SIZE) {
+      toast.error("Arquivo muito grande. Máximo 20MB.");
+      return;
+    }
+    setFile(selected);
+  };
+
+  const removeFile = () => {
+    setFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const buildMessage = (fileUrl?: string) => {
     const lines = [
       "Olá! Gostaria de solicitar um orçamento personalizado.",
       "",
@@ -56,13 +79,36 @@ function OrcamentoPage() {
       quantity && `*Quantidade:* ${quantity}`,
       deadline && `*Prazo desejado:* ${deadline}`,
       details && `\n*Detalhes do projeto:*\n${details}`,
+      fileUrl && `\n*Arquivo de referência:*\n${fileUrl}`,
     ].filter(Boolean);
     return lines.join("\n");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const message = encodeURIComponent(buildMessage());
+    let fileUrl: string | undefined;
+
+    if (file) {
+      setUploading(true);
+      try {
+        const ext = file.name.split(".").pop() ?? "bin";
+        const path = `${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage
+          .from("quote-references")
+          .upload(path, file, { contentType: file.type || undefined });
+        if (error) throw error;
+        const { data } = supabase.storage.from("quote-references").getPublicUrl(path);
+        fileUrl = data.publicUrl;
+      } catch (err) {
+        console.error(err);
+        toast.error("Falha ao enviar arquivo. Tente novamente.");
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    }
+
+    const message = encodeURIComponent(buildMessage(fileUrl));
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
@@ -164,14 +210,63 @@ function OrcamentoPage() {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="file">Arquivo de referência (opcional)</Label>
+                  <input
+                    ref={fileInputRef}
+                    id="file"
+                    type="file"
+                    accept={ACCEPTED_TYPES}
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  {!file ? (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-input bg-background px-4 py-6 text-sm text-muted-foreground transition-colors hover:border-brand hover:text-brand"
+                    >
+                      <Upload className="h-4 w-4" />
+                      Anexar arquivo (imagem, PDF, AI, PSD…) — até 20MB
+                    </button>
+                  ) : (
+                    <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 px-3 py-2 text-sm">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Paperclip className="h-4 w-4 shrink-0 text-brand" />
+                        <span className="truncate">{file.name}</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeFile}
+                        className="text-muted-foreground hover:text-destructive"
+                        aria-label="Remover arquivo"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <Button
                   type="submit"
                   size="lg"
                   className="w-full bg-[#25D366] text-white hover:bg-[#1ebe57]"
-                  disabled={!isValid}
+                  disabled={!isValid || uploading}
                 >
-                  <MessageCircle className="h-5 w-5" />
-                  Enviar pelo WhatsApp
+                  {uploading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Enviando arquivo...
+                    </>
+                  ) : (
+                    <>
+                      <MessageCircle className="h-5 w-5" />
+                      Enviar pelo WhatsApp
+                    </>
+                  )}
                 </Button>
 
                 <p className="text-center text-xs text-muted-foreground">
