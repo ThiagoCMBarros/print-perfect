@@ -6,6 +6,7 @@ export type SiteSettings = {
     site_name: string;
     tagline: string;
     logo_url: string;
+    logo_url_dark: string;
     favicon_url: string;
     primary_color: string;
     primary_foreground: string;
@@ -33,6 +34,7 @@ const DEFAULTS: SiteSettings = {
     site_name: "GráficaPro",
     tagline: "Impressão online rápida e de alta qualidade",
     logo_url: "",
+    logo_url_dark: "",
     favicon_url: "",
     primary_color: "#2563eb",
     primary_foreground: "#ffffff",

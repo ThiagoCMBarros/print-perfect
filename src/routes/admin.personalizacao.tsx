@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, Save, Upload, Palette, Building2, Phone, Share2, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,8 @@ const SECTIONS: { category: string; title: string; description: string; icon: Re
     fields: [
       { key: "site_name", label: "Nome do site" },
       { key: "tagline", label: "Slogan" },
-      { key: "logo_url", label: "Logotipo", type: "image" as const },
+      { key: "logo_url", label: "Logotipo (tema claro)", type: "image" as const },
+      { key: "logo_url_dark", label: "Logotipo (tema escuro)", type: "image" as const },
       { key: "favicon_url", label: "Favicon", type: "image" as const },
       { key: "primary_color", label: "Cor primária", type: "color" },
       { key: "primary_foreground", label: "Cor do texto sobre a primária", type: "color" },
@@ -87,8 +88,6 @@ function AdminPersonalizacao() {
   const [saving, setSaving] = useState(false);
   const [rows, setRows] = useState<Row[]>([]);
   const [draft, setDraft] = useState<Record<string, string>>({});
-  const logoInputRef = useRef<HTMLInputElement>(null);
-  const faviconInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState<string | null>(null);
 
   useEffect(() => {
@@ -140,7 +139,7 @@ function AdminPersonalizacao() {
     }
   }
 
-  async function uploadAsset(file: File, target: "logo_url" | "favicon_url") {
+  async function uploadAsset(file: File, target: "logo_url" | "logo_url_dark" | "favicon_url") {
     setUploading(target);
     try {
       const ext = file.name.split(".").pop() || "png";
@@ -149,7 +148,7 @@ function AdminPersonalizacao() {
       if (error) throw error;
       const { data: pub } = supabase.storage.from("site-assets").getPublicUrl(path);
       setVal("branding", target, pub.publicUrl);
-      toast.success(`${target === "logo_url" ? "Logo" : "Favicon"} carregado — clique em Salvar`);
+      toast.success("Arquivo carregado — clique em Salvar");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha no upload");
     } finally {
@@ -188,8 +187,12 @@ function AdminPersonalizacao() {
           <CardContent className="grid gap-4 md:grid-cols-2">
             {section.fields.map((f) => {
               const k = `${section.category}.${f.key}`;
-              const isLogo = section.category === "branding" && f.key === "logo_url";
-              const isFavicon = section.category === "branding" && f.key === "favicon_url";
+              const isImage = f.type === "image";
+              const target = (f.key === "logo_url" || f.key === "logo_url_dark" || f.key === "favicon_url")
+                ? (f.key as "logo_url" | "logo_url_dark" | "favicon_url")
+                : null;
+              const isFavicon = f.key === "favicon_url";
+              const inputId = `file-${k}`;
               return (
                 <div key={k} className={f.type === "textarea" || f.type === "image" ? "md:col-span-2 space-y-2" : "space-y-2"}>
                   <Label htmlFor={k}>{f.label}</Label>
@@ -200,23 +203,31 @@ function AdminPersonalizacao() {
                       <Input type="color" value={draft[k] || "#2563eb"} onChange={(e) => setVal(section.category, f.key, e.target.value)} className="h-10 w-16 p-1" />
                       <Input value={draft[k] ?? ""} onChange={(e) => setVal(section.category, f.key, e.target.value)} className="font-mono" />
                     </div>
-                  ) : f.type === "image" ? (
+                  ) : isImage && target ? (
                     <div className="flex flex-wrap items-center gap-3">
                       {draft[k] ? (
-                        <img src={draft[k]} alt={f.label} className="h-16 w-16 rounded border bg-[repeating-conic-gradient(#e5e7eb_0%_25%,#ffffff_0%_50%)] bg-[length:12px_12px] object-contain p-1" />
+                        <img
+                          src={draft[k]}
+                          alt={f.label}
+                          className={`h-16 w-16 rounded border object-contain p-1 ${
+                            target === "logo_url_dark"
+                              ? "bg-neutral-900"
+                              : "bg-[repeating-conic-gradient(#e5e7eb_0%_25%,#ffffff_0%_50%)] bg-[length:12px_12px]"
+                          }`}
+                        />
                       ) : (
                         <div className="flex h-16 w-16 items-center justify-center rounded border bg-muted text-xs text-muted-foreground">
                           sem imagem
                         </div>
                       )}
                       <input
-                        ref={isLogo ? logoInputRef : faviconInputRef}
+                        id={inputId}
                         type="file"
                         accept={isFavicon ? "image/png,image/x-icon,image/svg+xml" : "image/*"}
                         className="hidden"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
-                          if (file) uploadAsset(file, isLogo ? "logo_url" : "favicon_url");
+                          if (file) uploadAsset(file, target);
                           e.target.value = "";
                         }}
                       />
@@ -224,26 +235,35 @@ function AdminPersonalizacao() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => (isLogo ? logoInputRef : faviconInputRef).current?.click()}
-                        disabled={uploading === (isLogo ? "logo_url" : "favicon_url")}
+                        onClick={() => document.getElementById(inputId)?.click()}
+                        disabled={uploading === target}
                       >
-                        {uploading === (isLogo ? "logo_url" : "favicon_url") ? (
+                        {uploading === target ? (
                           <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando…</>
                         ) : (
                           <><Upload className="mr-2 h-4 w-4" /> {draft[k] ? "Trocar arquivo" : "Enviar arquivo"}</>
                         )}
                       </Button>
-                      <LogoEditorDialog
-                        target={isLogo ? "logo_url" : "favicon_url"}
-                        currentUrl={draft[k]}
-                        onUploaded={(url) => setVal("branding", isLogo ? "logo_url" : "favicon_url", url)}
-                      />
+                      {!isFavicon && (
+                        <LogoEditorDialog
+                          target={target as "logo_url" | "logo_url_dark" | "favicon_url"}
+                          currentUrl={draft[k]}
+                          onUploaded={(url) => setVal("branding", target, url)}
+                        />
+                      )}
+                      {isFavicon && (
+                        <LogoEditorDialog
+                          target="favicon_url"
+                          currentUrl={draft[k]}
+                          onUploaded={(url) => setVal("branding", "favicon_url", url)}
+                        />
+                      )}
                       {draft[k] && (
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
-                          onClick={() => setVal("branding", isLogo ? "logo_url" : "favicon_url", "")}
+                          onClick={() => setVal("branding", f.key, "")}
                         >
                           Remover
                         </Button>

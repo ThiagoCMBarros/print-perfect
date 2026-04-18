@@ -5,15 +5,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type Props = {
-  /** "logo_url" ou "favicon_url" */
-  target: "logo_url" | "favicon_url";
+  /** "logo_url", "logo_url_dark" ou "favicon_url" */
+  target: "logo_url" | "logo_url_dark" | "favicon_url";
   /** URL atual (opcional) — será carregada como camada inicial. */
   currentUrl?: string;
   onUploaded: (publicUrl: string) => void;
 };
 
 const PRESETS = {
-  logo_url: { w: 800, h: 240, label: "Editor de logotipo" },
+  logo_url: { w: 800, h: 240, label: "Editor de logotipo (tema claro)" },
+  logo_url_dark: { w: 800, h: 240, label: "Editor de logotipo (tema escuro)" },
   favicon_url: { w: 256, h: 256, label: "Editor de favicon" },
 };
 
@@ -31,7 +32,7 @@ export function LogoEditorDialog({ target, currentUrl, onUploaded }: Props) {
     }
     const { data: pub } = supabase.storage.from("site-assets").getPublicUrl(path);
     onUploaded(pub.publicUrl);
-    toast.success(`${target === "logo_url" ? "Logotipo" : "Favicon"} atualizado — clique em Salvar tudo`);
+    toast.success("Imagem atualizada — clique em Salvar tudo");
   }
 
   return (
