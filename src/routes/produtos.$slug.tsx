@@ -70,9 +70,14 @@ function ProductPage() {
     return () => { cancelled = true; };
   }, [slug]);
 
+  const customUnits = useMemo(() => {
+    const n = parseInt(customQty.replace(/\D/g, ""), 10);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }, [customQty]);
+
   const price = useMemo(
-    () => product ? calcPrice(product, sizeId, materialId, finishId, quantityId, urgency) : null,
-    [product, sizeId, materialId, finishId, quantityId, urgency],
+    () => product ? calcPrice(product, sizeId, materialId, finishId, quantityId, urgency, customUnits) : null,
+    [product, sizeId, materialId, finishId, quantityId, urgency, customUnits],
   );
 
   if (loading) {
