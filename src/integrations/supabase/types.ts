@@ -213,6 +213,53 @@ export type Database = {
         }
         Relationships: []
       }
+      finishes: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          material_type_id: string
+          name: string
+          price_modifier: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          material_type_id: string
+          name: string
+          price_modifier?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          material_type_id?: string
+          name?: string
+          price_modifier?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finishes_material_type_id_fkey"
+            columns: ["material_type_id"]
+            isOneToOne: false
+            referencedRelation: "material_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_settings: {
         Row: {
           category: string
@@ -248,6 +295,80 @@ export type Database = {
           value?: Json
         }
         Relationships: []
+      }
+      material_types: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      materials: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          material_type_id: string
+          name: string
+          price_modifier: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          material_type_id: string
+          name: string
+          price_modifier?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          material_type_id?: string
+          name?: string
+          price_modifier?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "materials_material_type_id_fkey"
+            columns: ["material_type_id"]
+            isOneToOne: false
+            referencedRelation: "material_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_items: {
         Row: {
@@ -425,6 +546,39 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "admin_users_view"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      product_material_types: {
+        Row: {
+          material_type_id: string
+          product_id: string
+          sort_order: number
+        }
+        Insert: {
+          material_type_id: string
+          product_id: string
+          sort_order?: number
+        }
+        Update: {
+          material_type_id?: string
+          product_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_material_types_material_type_id_fkey"
+            columns: ["material_type_id"]
+            isOneToOne: false
+            referencedRelation: "material_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_material_types_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
           },
         ]
       }
