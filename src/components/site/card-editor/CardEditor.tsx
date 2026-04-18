@@ -73,12 +73,13 @@ export function CardEditor({
   const [customDims, setCustomDims] = useState<{ w: number; h: number }>(
     customSize ?? { w: baseT.w, h: baseT.h },
   );
+  const [rotated, setRotated] = useState(false);
   const t: TemplateMeta = useMemo(() => {
-    if (tpl === "custom" || customSize) {
+    if (tpl === "custom" || customSize || rotated) {
       return { ...baseT, w: customDims.w, h: customDims.h };
     }
     return baseT;
-  }, [tpl, baseT, customDims, customSize]);
+  }, [tpl, baseT, customDims, customSize, rotated]);
 
   const [background, setBackground] = useState<Background>(defaultBackground ?? { type: "solid", color: "#0f172a" });
   const [layers, setLayers] = useState<Layer[]>(() => (emptyDefault ? [] : buildDefaultLayers(t)));
