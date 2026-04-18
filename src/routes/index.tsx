@@ -241,7 +241,7 @@ function HomePage() {
 
       <section className="container-page pb-20">
         <div
-          className="relative overflow-hidden rounded-3xl px-6 py-14 text-center text-brand-foreground sm:px-12"
+          className="relative overflow-hidden rounded-3xl border border-border bg-card px-6 py-14 text-center text-card-foreground shadow-elevated sm:px-12 dark:bg-[linear-gradient(135deg,oklch(0.22_0.04_265)_0%,oklch(0.16_0.04_265)_100%)]"
           style={{ backgroundImage: "var(--gradient-brand)" }}
         >
           <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
