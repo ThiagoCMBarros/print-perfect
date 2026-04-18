@@ -6,10 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PenTool, Download, Upload as UploadIcon, Save, Loader2 } from "lucide-react";
 
+type TemplateKey = "card" | "flyer" | "banner" | "sticker";
+
 type Props = {
   triggerLabel?: string;
   defaultTemplate?: TemplateKey;
   categorySlug?: string;
+  /** Quando true, trava o seletor de template (cliente não pode mudar). */
+  lockTemplate?: boolean;
   /** Recebe o blob PNG quando o usuário aciona "Salvar arte". */
   onSave?: (blob: Blob) => Promise<void> | void;
   /** Quando true, mostra o botão "Salvar arte" no editor. */
@@ -18,16 +22,16 @@ type Props = {
 
 const SLUG_TO_TEMPLATE: Record<string, TemplateKey> = {
   cartoes: "card",
+  "cartoes-de-visita": "card",
   panfletos: "flyer",
   flyers: "flyer",
   banners: "banner",
+  "banners-grandes": "banner",
   adesivos: "sticker",
 };
 
 const BG_PRESETS = ["#ffffff", "#0f172a", "#3b82f6", "#0ea5e9", "#10b981", "#ef4444", "#f59e0b", "#111827"];
 const TEXT_PRESETS = ["#0f172a", "#ffffff", "#3b82f6", "#94a3b8"];
-
-type TemplateKey = "card" | "flyer" | "banner" | "sticker";
 
 const TEMPLATES: Record<TemplateKey, {
   label: string;
@@ -42,7 +46,7 @@ const TEMPLATES: Record<TemplateKey, {
   sticker: { label: "Adesivo 10×10cm",          w: 1181, h: 1181, realSize: "10×10 cm", defaults: { title: "OBRIGADO!", subtitle: "Pela preferência", line1: "@suaempresa", line2: "" }, font: { title: 130, subtitle: 56, line: 42 } },
 };
 
-export function CardEditor({ triggerLabel = "Personalizar arte", defaultTemplate, categorySlug, onSave, enableSave = false }: Props) {
+export function CardEditor({ triggerLabel = "Personalizar arte", defaultTemplate, categorySlug, lockTemplate = false, onSave, enableSave = false }: Props) {
   const initial: TemplateKey = defaultTemplate ?? (categorySlug ? SLUG_TO_TEMPLATE[categorySlug] : undefined) ?? "card";
   const [open, setOpen] = useState(false);
   const [tpl, setTpl] = useState<TemplateKey>(initial);
@@ -128,6 +132,8 @@ export function CardEditor({ triggerLabel = "Personalizar arte", defaultTemplate
       );
       await onSave(blob);
       setOpen(false);
+    } catch (err) {
+      console.error("[CardEditor] erro ao salvar arte:", err);
     } finally {
       setSaving(false);
     }
@@ -150,7 +156,7 @@ export function CardEditor({ triggerLabel = "Personalizar arte", defaultTemplate
           <div className="space-y-3">
             <div>
               <Label className="text-xs">Template</Label>
-              <Select value={tpl} onValueChange={(v) => setTpl(v as TemplateKey)}>
+              <Select value={tpl} onValueChange={(v) => setTpl(v as TemplateKey)} disabled={lockTemplate}>
                 <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {(Object.keys(TEMPLATES) as TemplateKey[]).map((k) => (
@@ -158,6 +164,9 @@ export function CardEditor({ triggerLabel = "Personalizar arte", defaultTemplate
                   ))}
                 </SelectContent>
               </Select>
+              {lockTemplate && (
+                <p className="mt-1 text-[10px] text-muted-foreground">Editando o produto selecionado.</p>
+              )}
             </div>
             <div>
               <Label className="text-xs">Cor de fundo</Label>
