@@ -103,6 +103,18 @@ export function ArtworkUpload({ orderId, item, onChange, isAdmin = false }: {
         </p>
       )}
 
+      {/* Cliente: arte aprovada — confirmação visual */}
+      {!isAdmin && item.artwork_status === "approved" && (
+        <div className="mt-3 rounded-lg border border-success/30 bg-success/5 p-3 text-xs text-success">
+          <p className="flex items-center gap-1.5 font-medium">
+            <CheckCircle2 className="h-3.5 w-3.5" /> Arte aprovada pela equipe — seguirá para produção.
+          </p>
+          {item.artwork_note && (
+            <p className="mt-1 text-success/80"><strong>Observação:</strong> {item.artwork_note}</p>
+          )}
+        </div>
+      )}
+
       {/* Cliente: enviar / re-enviar */}
       {!isAdmin && item.artwork_status !== "approved" && (
         <label className="mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed bg-background p-4 text-sm text-muted-foreground transition-colors hover:border-brand/40 hover:text-brand">
