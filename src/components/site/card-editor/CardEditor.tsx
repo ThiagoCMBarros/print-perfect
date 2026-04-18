@@ -7,6 +7,7 @@ import { PenTool, Download, Save, Loader2, Type, ImagePlus } from "lucide-react"
 import { CanvasStage } from "./CanvasStage";
 import { LayerControls } from "./LayerControls";
 import { BackgroundControls } from "./BackgroundControls";
+import { LayersPanel } from "./LayersPanel";
 import { renderToBlob } from "./exportCanvas";
 import {
   TEMPLATES,
