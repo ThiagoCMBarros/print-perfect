@@ -282,43 +282,46 @@ export function CardEditor({
             )}
 
             {(allowResizeCanvas || tpl === "custom") && (
-              <div className="space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-[11px]">Largura (px)</Label>
-                    <Input
-                      type="number"
-                      min={64}
-                      max={4096}
-                      value={customDims.w}
-                      onChange={(e) => setCustomDims((d) => ({ ...d, w: Math.max(64, Math.min(4096, Number(e.target.value) || 64)) }))}
-                      className="mt-1 h-8 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-[11px]">Altura (px)</Label>
-                    <Input
-                      type="number"
-                      min={64}
-                      max={4096}
-                      value={customDims.h}
-                      onChange={(e) => setCustomDims((d) => ({ ...d, h: Math.max(64, Math.min(4096, Number(e.target.value) || 64)) }))}
-                      className="mt-1 h-8 text-xs"
-                    />
-                  </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-[11px]">Largura (px)</Label>
+                  <Input
+                    type="number"
+                    min={64}
+                    max={4096}
+                    value={customDims.w}
+                    onChange={(e) => { setRotated(true); setCustomDims((d) => ({ ...d, w: Math.max(64, Math.min(4096, Number(e.target.value) || 64)) })); }}
+                    className="mt-1 h-8 text-xs"
+                  />
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => setCustomDims((d) => ({ w: d.h, h: d.w }))}
-                >
-                  <RotateCw className="mr-1.5 h-3.5 w-3.5" />
-                  Girar orientação ({customDims.w}×{customDims.h} → {customDims.h}×{customDims.w})
-                </Button>
+                <div>
+                  <Label className="text-[11px]">Altura (px)</Label>
+                  <Input
+                    type="number"
+                    min={64}
+                    max={4096}
+                    value={customDims.h}
+                    onChange={(e) => { setRotated(true); setCustomDims((d) => ({ ...d, h: Math.max(64, Math.min(4096, Number(e.target.value) || 64)) })); }}
+                    className="mt-1 h-8 text-xs"
+                  />
+                </div>
               </div>
             )}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => {
+                setCustomDims({ w: t.h, h: t.w });
+                setRotated(true);
+              }}
+            >
+              <RotateCw className="mr-1.5 h-3.5 w-3.5" />
+              Girar orientação ({t.w}×{t.h} → {t.h}×{t.w})
+            </Button>
+
 
             <LayersPanel
               layers={layers}
