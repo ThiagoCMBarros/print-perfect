@@ -74,18 +74,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const updateQty = async (id: string, qty: number) => {
-    if (qty < 1) return;
+    // BUG-001: cálculo correto baseado no preço unitário real (que já inclui modificadores de
+    // tamanho/material/acabamento e urgência), multiplicado pela nova quantidade.
+    const safeQty = Math.max(1, Math.min(9999, Math.floor(qty)));
     const item = items.find((i) => i.id === id);
     if (!item) return;
-    const newTotal = Number(item.unit_price) * qty * (Number(item.total_price) / Number(item.unit_price) / item.qty);
-    // simplificação: recalcula proporcionalmente ao qty
-    const unitTotal = Number(item.total_price) / item.qty;
+    const unit = Number(item.unit_price);
+    const newTotal = Number((unit * safeQty).toFixed(2));
     await supabase
       .from("cart_items")
-      .update({ qty, total_price: Number((unitTotal * qty).toFixed(2)) })
+      .update({ qty: safeQty, total_price: newTotal })
       .eq("id", id);
     await refresh();
-    void newTotal;
   };
 
   const clear = async () => {
