@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatBRL } from "@/lib/catalog";
+import { ArtworkPreview } from "@/components/site/ArtworkPreview";
+import { SLUG_TO_TEMPLATE } from "@/components/site/card-editor/types";
 
 export const Route = createFileRoute("/carrinho")({
   head: () => ({ meta: [{ title: "Carrinho — GráficaPro" }] }),
