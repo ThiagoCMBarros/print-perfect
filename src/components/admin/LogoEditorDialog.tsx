@@ -43,6 +43,7 @@ export function LogoEditorDialog({ target, currentUrl, onUploaded }: Props) {
       defaultBackground={{ type: "transparent" }}
       emptyDefault
       enableSave
+      initialImageUrl={currentUrl}
       saveLabel="Aplicar e enviar"
       dialogTitle={preset.label}
       triggerNode={
