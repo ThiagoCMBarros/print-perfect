@@ -130,9 +130,9 @@ function HomePage() {
           </Button>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {loading
-            ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)
+            ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-44 rounded-2xl" />)
             : categories.map((c) => {
                 const Icon = (Icons[c.icon as keyof typeof Icons] as Icons.LucideIcon) ?? Icons.Tag;
                 return (
@@ -140,12 +140,26 @@ function HomePage() {
                     key={c.id}
                     to="/produtos"
                     search={{ category: c.slug }}
-                    className="group flex flex-col items-center gap-3 rounded-2xl border bg-card p-5 text-center transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-elevated"
+                    className="group flex flex-col overflow-hidden rounded-2xl border bg-card transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-elevated"
                   >
-                    <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand-soft text-brand transition-colors group-hover:bg-brand group-hover:text-brand-foreground">
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <span className="text-sm font-medium leading-tight">{c.name}</span>
+                    <div
+                      className="relative aspect-square w-full overflow-hidden"
+                      style={{ backgroundImage: "var(--gradient-hero)" }}
+                    >
+                      {c.image ? (
+                        <img
+                          src={c.image}
+                          alt={c.name}
+                          loading="lazy"
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <span className="absolute inset-0 grid place-items-center text-brand/50">
+                          <Icon className="h-10 w-10" />
+                        </span>
+                      )}
+                    </div>
+                    <span className="px-3 py-3 text-center text-sm font-medium leading-tight">{c.name}</span>
                   </Link>
                 );
               })}
