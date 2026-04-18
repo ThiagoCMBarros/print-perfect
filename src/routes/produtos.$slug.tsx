@@ -112,6 +112,10 @@ function ProductPage() {
   const finishes = getOptions(product, "finish");
   const quantities = getOptions(product, "quantity");
 
+  const selectedSize = sizes.find((s) => s.id === sizeId) ?? null;
+  const sizeImages = sizes.filter((s) => !!s.image);
+  const heroImage = selectedSize?.image ?? product.image ?? null;
+
   async function handleAdd() {
     if (!user) {
       toast.info("Faça login para adicionar ao carrinho.");
@@ -208,12 +212,48 @@ function ProductPage() {
             className="grid aspect-square place-items-center overflow-hidden rounded-3xl border"
             style={{ backgroundImage: "var(--gradient-hero)" }}
           >
-            {product.image ? (
-              <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+            {heroImage ? (
+              <img
+                src={heroImage}
+                alt={selectedSize ? `${product.name} — ${selectedSize.label}` : product.name}
+                className="h-full w-full object-contain"
+              />
             ) : (
               <ImageIcon className="h-32 w-32 text-brand/30" />
             )}
           </div>
+          {(sizeImages.length > 0 || product.image) && (
+            <div className="flex flex-wrap gap-2">
+              {product.image && (
+                <button
+                  type="button"
+                  onClick={() => setSizeId(null)}
+                  className={`relative h-16 w-16 overflow-hidden rounded-lg border transition-all ${
+                    !selectedSize?.image ? "border-brand ring-2 ring-brand/30" : "border-border hover:border-brand/40"
+                  }`}
+                  title="Capa"
+                >
+                  <img src={product.image} alt="Capa" className="h-full w-full object-cover" />
+                </button>
+              )}
+              {sizeImages.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setSizeId(s.id)}
+                  className={`relative h-16 w-16 overflow-hidden rounded-lg border transition-all ${
+                    sizeId === s.id ? "border-brand ring-2 ring-brand/30" : "border-border hover:border-brand/40"
+                  }`}
+                  title={s.label}
+                >
+                  <img src={s.image!} alt={s.label} className="h-full w-full object-cover" />
+                  <span className="absolute bottom-0 left-0 right-0 bg-black/60 py-0.5 text-center text-[10px] font-medium text-white">
+                    {s.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>
