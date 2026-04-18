@@ -4,7 +4,13 @@ import { useAuth } from "./AuthContext";
 import type { Tables } from "@/integrations/supabase/types";
 
 export type CartItemRow = Tables<"cart_items"> & {
-  products: Pick<Tables<"products">, "id" | "name" | "image" | "slug"> | null;
+  products:
+    | (Pick<Tables<"products">, "id" | "name" | "image" | "slug"> & {
+        complexity: "simple" | "complex" | null;
+        categories: { complexity: "simple" | "complex" } | null;
+      })
+    | null;
+  quantity_option: Pick<Tables<"product_options">, "id" | "numeric_value"> | null;
 };
 
 type CartCtx = {
