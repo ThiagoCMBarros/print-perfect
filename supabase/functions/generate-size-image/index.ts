@@ -48,11 +48,11 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-    // valida: aceita service role key OU JWT de admin
+    // valida: aceita service role key, LOVABLE_API_KEY (bypass interno) OU JWT de admin
     const authHeader = req.headers.get("Authorization") ?? "";
     const token = authHeader.replace("Bearer ", "");
-    const isServiceRole = token === SERVICE_ROLE;
-    if (!isServiceRole) {
+    const isBypass = token === SERVICE_ROLE || token === LOVABLE_API_KEY;
+    if (!isBypass) {
       const { data: userData } = await admin.auth.getUser(token);
       const userId = userData.user?.id;
       if (!userId) {
