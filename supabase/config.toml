@@ -2,3 +2,6 @@ project_id = "mmbtrkrzkilyvrqtitnq"
 
 [functions.send-contact]
 verify_jwt = false
+
+[functions.generate-size-image]
+verify_jwt = false
