@@ -101,8 +101,8 @@ function AdminOptions() {
       <Tabs defaultValue="product" className="mt-4">
         <TabsList>
           <TabsTrigger value="product">Opções por produto</TabsTrigger>
-          <TabsTrigger value="materials">Materiais (preço/cm²)</TabsTrigger>
-          <TabsTrigger value="finishes">Laminações (preço/cm²)</TabsTrigger>
+          <TabsTrigger value="materials">Materiais (preço/mm²)</TabsTrigger>
+          <TabsTrigger value="finishes">Laminações (preço/mm²)</TabsTrigger>
         </TabsList>
 
         <TabsContent value="product" className="mt-4 space-y-4">
