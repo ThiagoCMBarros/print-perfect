@@ -199,6 +199,7 @@ function ProductPage() {
       unit_price: calc.unit_price,
       total_price: calc.total,
       qtd,
+      artwork_path: artwork.path,
     });
     setAdding(false);
     if (error) return toast.error(error);
