@@ -64,6 +64,7 @@ function ProductPage() {
   const [aplicacaoId, setAplicacaoId] = useState<string>("");
   const [acabSel, setAcabSel] = useState<Map<string, number>>(new Map());
   const [qtd, setQtd] = useState<number>(1);
+  const [artwork, setArtwork] = useState<ArtworkValue>({ path: null, filename: null });
 
   const [calc, setCalc] = useState<CalcResult | null>(null);
   const [calcLoading, setCalcLoading] = useState(false);
