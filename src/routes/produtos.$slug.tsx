@@ -18,6 +18,8 @@ import { SLUG_TO_TEMPLATE } from "@/components/site/card-editor/types";
 import { toast } from "sonner";
 import {
   calcPrice, fetchProductBySlug, formatBRL, getOptions, type ProductWithOptions,
+  fetchAllMaterialPricing, fetchAllFinishPricing, findPricingByLabel,
+  type MaterialPricing, type FinishPricing,
 } from "@/lib/catalog";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -53,16 +55,24 @@ function ProductPage() {
   const [adding, setAdding] = useState(false);
   const [artworkPath, setArtworkPath] = useState<string | null>(null);
   const [artworkLabel, setArtworkLabel] = useState<string | null>(null);
+  const [allMaterials, setAllMaterials] = useState<MaterialPricing[]>([]);
+  const [allFinishes, setAllFinishes] = useState<FinishPricing[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setNotFound(false);
-    fetchProductBySlug(slug)
-      .then((p) => {
+    Promise.all([
+      fetchProductBySlug(slug),
+      fetchAllMaterialPricing(),
+      fetchAllFinishPricing(),
+    ])
+      .then(([p, mats, fins]) => {
         if (cancelled) return;
         if (!p) { setNotFound(true); return; }
         setProduct(p);
+        setAllMaterials(mats);
+        setAllFinishes(fins);
         setSizeId(getOptions(p, "size")[0]?.id ?? null);
         setMaterialId(getOptions(p, "material")[0]?.id ?? null);
         setFinishId(getOptions(p, "finish")[0]?.id ?? null);
@@ -77,10 +87,14 @@ function ProductPage() {
     return Number.isFinite(n) && n > 0 ? n : null;
   }, [customQty]);
 
-  const price = useMemo(
-    () => product ? calcPrice(product, sizeId, materialId, finishId, quantityId, urgency, customUnits) : null,
-    [product, sizeId, materialId, finishId, quantityId, urgency, customUnits],
-  );
+  const price = useMemo(() => {
+    if (!product) return null;
+    const matLabel = getOptions(product, "material").find((m) => m.id === materialId)?.label;
+    const finLabel = getOptions(product, "finish").find((f) => f.id === finishId)?.label;
+    const matPricing = findPricingByLabel(allMaterials, matLabel);
+    const finPricing = findPricingByLabel(allFinishes, finLabel);
+    return calcPrice(product, sizeId, materialId, finishId, quantityId, urgency, customUnits, matPricing, finPricing);
+  }, [product, sizeId, materialId, finishId, quantityId, urgency, customUnits, allMaterials, allFinishes]);
 
   if (loading) {
     return (

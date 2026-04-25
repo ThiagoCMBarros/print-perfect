@@ -28,13 +28,16 @@ type FormState = {
   active: boolean;
   bestseller: boolean;
   new_release: boolean;
-  complexity: "" | "simple" | "complex"; // "" = herda da categoria
+  complexity: "" | "simple" | "complex";
+  pricing_mode: "auto" | "fixed";
+  fixed_unit_price: string;
 };
 
 const blank: FormState = {
   name: "", slug: "", short_description: "", description: "",
   base_price: "0", production_days: "3", category_id: "", image: "",
   active: true, bestseller: false, new_release: false, complexity: "",
+  pricing_mode: "auto", fixed_unit_price: "0",
 };
 
 function slugify(s: string) {
@@ -71,6 +74,8 @@ function AdminProductForm() {
             category_id: data.category_id, image: data.image ?? "",
             active: data.active, bestseller: data.bestseller, new_release: data.new_release,
             complexity: ((data as Tables<"products"> & { complexity?: "simple" | "complex" | null }).complexity) ?? "",
+            pricing_mode: ((data as Tables<"products"> & { pricing_mode?: "auto" | "fixed" }).pricing_mode) ?? "auto",
+            fixed_unit_price: String((data as Tables<"products"> & { fixed_unit_price?: number | null }).fixed_unit_price ?? 0),
           });
         }
         setLoading(false);
@@ -114,6 +119,8 @@ function AdminProductForm() {
       bestseller: form.bestseller,
       new_release: form.new_release,
       complexity: form.complexity === "" ? null : form.complexity,
+      pricing_mode: form.pricing_mode,
+      fixed_unit_price: form.pricing_mode === "fixed" ? Number(form.fixed_unit_price) : null,
     };
     if (isNew) {
       const { data, error } = await supabase.from("products").insert(payload).select("id").single();
@@ -256,6 +263,39 @@ function AdminProductForm() {
             <Toggle label="Ativo" checked={form.active} onChange={(v) => setForm((f) => ({ ...f, active: v }))} />
             <Toggle label="Mais vendido" checked={form.bestseller} onChange={(v) => setForm((f) => ({ ...f, bestseller: v }))} />
             <Toggle label="Lançamento" checked={form.new_release} onChange={(v) => setForm((f) => ({ ...f, new_release: v }))} />
+          </div>
+
+          <div className="rounded-xl border bg-surface-muted p-4 space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <Label className="text-base">Modo de precificação</Label>
+                <p className="text-xs text-muted-foreground">
+                  <strong>Automático</strong>: calcula por área (cm²) × preço do material + laminação.{" "}
+                  <strong>Preço fixo</strong>: você define um preço unitário fechado (ignora material/laminação).
+                </p>
+              </div>
+              <Select
+                value={form.pricing_mode}
+                onValueChange={(v) => setForm((f) => ({ ...f, pricing_mode: v as "auto" | "fixed" }))}
+              >
+                <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto">Automático (cm²)</SelectItem>
+                  <SelectItem value="fixed">Preço fixo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {form.pricing_mode === "fixed" && (
+              <div>
+                <Label>Preço unitário fixo (R$)</Label>
+                <Input
+                  type="number" step="0.01"
+                  value={form.fixed_unit_price}
+                  onChange={(e) => setForm((f) => ({ ...f, fixed_unit_price: e.target.value }))}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">Total = preço × quantidade − descontos da faixa.</p>
+              </div>
+            )}
           </div>
 
           {!isNew && (
