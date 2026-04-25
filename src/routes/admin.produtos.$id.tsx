@@ -28,13 +28,16 @@ type FormState = {
   active: boolean;
   bestseller: boolean;
   new_release: boolean;
-  complexity: "" | "simple" | "complex"; // "" = herda da categoria
+  complexity: "" | "simple" | "complex";
+  pricing_mode: "auto" | "fixed";
+  fixed_unit_price: string;
 };
 
 const blank: FormState = {
   name: "", slug: "", short_description: "", description: "",
   base_price: "0", production_days: "3", category_id: "", image: "",
   active: true, bestseller: false, new_release: false, complexity: "",
+  pricing_mode: "auto", fixed_unit_price: "0",
 };
 
 function slugify(s: string) {
