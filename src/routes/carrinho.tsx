@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatBRL } from "@/lib/catalog";
 import { ArtworkPreview } from "@/components/site/ArtworkPreview";
 import { SLUG_TO_TEMPLATE } from "@/components/site/card-editor/types";
+import { CompositionSummary } from "@/components/site/CompositionSummary";
 
 export const Route = createFileRoute("/carrinho")({
   head: () => ({ meta: [{ title: "Carrinho — GráficaPro" }] }),
@@ -77,8 +78,9 @@ function CartPage() {
                   </div>
                   <div className="flex-1">
                     <p className="font-semibold">{it.produtos?.nome ?? "Produto"}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Urgência: {it.urgency === "express" ? "Express" : "Padrão"} · {formatBRL(Number(it.unit_price))} / un
+                    <CompositionSummary composicao={it.composicao} className="mt-1" />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {formatBRL(Number(it.unit_price))} / un
                     </p>
                     {(it.artwork_path || it.artwork_back_path) && (
                       <div className="mt-3">

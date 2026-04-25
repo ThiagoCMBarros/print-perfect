@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/catalog";
+import { CompositionSummary } from "@/components/site/CompositionSummary";
 import { calculateShipping, FREE_SHIPPING_AMOUNT } from "@/lib/shipping";
 import { productionDaysForCart, effectiveComplexity } from "@/lib/production-time";
 
@@ -209,9 +210,12 @@ function CheckoutPage() {
             <h2 className="font-display text-lg font-bold">Seu pedido</h2>
             <ul className="mt-4 space-y-3 text-sm">
               {items.map((it) => (
-                <li key={it.id} className="flex justify-between gap-2">
-                  <span className="line-clamp-1">{it.qtd}× {it.produtos?.nome}</span>
-                  <span className="shrink-0 font-medium">{formatBRL(Number(it.total_price))}</span>
+                <li key={it.id} className="flex flex-col gap-0.5 border-b pb-2 last:border-0">
+                  <div className="flex justify-between gap-2">
+                    <span className="line-clamp-1">{it.qtd}× {it.produtos?.nome}</span>
+                    <span className="shrink-0 font-medium">{formatBRL(Number(it.total_price))}</span>
+                  </div>
+                  <CompositionSummary composicao={it.composicao} />
                 </li>
               ))}
             </ul>
