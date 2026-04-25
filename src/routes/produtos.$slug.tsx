@@ -22,6 +22,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { Json } from "@/integrations/supabase/types";
 import { ArtworkPicker, type ArtworkValue } from "@/components/site/ArtworkPicker";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/produtos/$slug")({
   head: ({ params }) => ({
@@ -45,6 +47,7 @@ function ProductPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { add } = useCart();
+  const { isAdmin } = useIsAdmin();
 
   const [product, setProduct] = useState<ProdutoWithCategory | null>(null);
   const [loading, setLoading] = useState(true);
@@ -243,7 +246,20 @@ function ProductPage() {
             {product.categories && (
               <p className="text-sm text-muted-foreground">{product.categories.name}</p>
             )}
-            <h1 className="mt-1 font-display text-3xl font-bold">{product.nome}</h1>
+            <div className="mt-1 flex items-center gap-2">
+              <h1 className="font-display text-3xl font-bold">{product.nome}</h1>
+              {isAdmin && (
+                <Link
+                  to="/admin/produtos/$id"
+                  params={{ id: product.id }}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  title="Editar produto"
+                  aria-label="Editar produto"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Link>
+              )}
+            </div>
             <div className="mt-2 flex gap-2">
               {product.bestseller && <Badge>Mais vendido</Badge>}
               {product.novidade && <Badge variant="secondary">Lançamento</Badge>}
