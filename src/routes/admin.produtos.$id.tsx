@@ -17,27 +17,27 @@ export const Route = createFileRoute("/admin/produtos/$id")({
 
 type Cat = Tables<"categories">;
 type FormState = {
-  name: string;
+  nome: string;
   slug: string;
-  short_description: string;
-  description: string;
-  base_price: string;
-  production_days: string;
+  descricao_curta: string;
+  descricao: string;
+  largura_mm: string;
+  altura_mm: string;
+  margem_percent: string;
+  dias_producao: string;
   category_id: string;
-  image: string;
-  active: boolean;
+  imagem: string;
+  ativo: boolean;
   bestseller: boolean;
-  new_release: boolean;
-  complexity: "" | "simple" | "complex";
-  pricing_mode: "auto" | "fixed";
-  fixed_unit_price: string;
+  novidade: boolean;
+  complexidade: "" | "simple" | "medium" | "complex";
 };
 
 const blank: FormState = {
-  name: "", slug: "", short_description: "", description: "",
-  base_price: "0", production_days: "3", category_id: "", image: "",
-  active: true, bestseller: false, new_release: false, complexity: "",
-  pricing_mode: "auto", fixed_unit_price: "0",
+  nome: "", slug: "", descricao_curta: "", descricao: "",
+  largura_mm: "0", altura_mm: "0", margem_percent: "0",
+  dias_producao: "3", category_id: "", imagem: "",
+  ativo: true, bestseller: false, novidade: false, complexidade: "",
 };
 
 function slugify(s: string) {
@@ -58,268 +58,235 @@ function AdminProductForm() {
 
   useEffect(() => {
     supabase.from("categories").select("*").order("sort_order").then(({ data }) => {
-      setCategories(data ?? []);
-      if (isNew && data && data.length) setForm((f) => ({ ...f, category_id: data[0].id }));
+      setCategories((data as Cat[]) ?? []);
     });
-    if (!isNew) {
-      supabase.from("products").select("*").eq("id", id).maybeSingle().then(({ data, error }) => {
-        if (error) toast.error(error.message);
-        if (data) {
-          setForm({
-            name: data.name, slug: data.slug,
-            short_description: data.short_description ?? "",
-            description: data.description ?? "",
-            base_price: String(data.base_price),
-            production_days: String(data.production_days),
-            category_id: data.category_id, image: data.image ?? "",
-            active: data.active, bestseller: data.bestseller, new_release: data.new_release,
-            complexity: ((data as Tables<"products"> & { complexity?: "simple" | "complex" | null }).complexity) ?? "",
-            pricing_mode: ((data as Tables<"products"> & { pricing_mode?: "auto" | "fixed" }).pricing_mode) ?? "auto",
-            fixed_unit_price: String((data as Tables<"products"> & { fixed_unit_price?: number | null }).fixed_unit_price ?? 0),
-          });
-        }
-        setLoading(false);
-      });
-    }
+  }, []);
+
+  useEffect(() => {
+    if (isNew) return;
+    setLoading(true);
+    supabase.from("produtos").select("*").eq("id", id).maybeSingle().then(({ data, error }) => {
+      if (error) toast.error(error.message);
+      if (data) {
+        setForm({
+          nome: data.nome,
+          slug: data.slug,
+          descricao_curta: data.descricao_curta ?? "",
+          descricao: data.descricao ?? "",
+          largura_mm: String(data.largura_mm ?? 0),
+          altura_mm: String(data.altura_mm ?? 0),
+          margem_percent: String(data.margem_percent ?? 0),
+          dias_producao: String(data.dias_producao ?? 3),
+          category_id: data.category_id ?? "",
+          imagem: data.imagem ?? "",
+          ativo: data.ativo,
+          bestseller: data.bestseller,
+          novidade: data.novidade,
+          complexidade: (data.complexidade ?? "") as FormState["complexidade"],
+        });
+      }
+      setLoading(false);
+    });
   }, [id, isNew]);
 
   async function handleUpload(file: File) {
     setUploading(true);
-    const ext = file.name.split(".").pop();
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error } = await supabase.storage.from("product-images").upload(path, file, {
-      cacheControl: "3600", upsert: false,
-    });
-    if (error) {
-      toast.error(error.message);
-      setUploading(false);
-      return;
-    }
-    const { data: pub } = supabase.storage.from("product-images").getPublicUrl(path);
-    setForm((f) => ({ ...f, image: pub.publicUrl }));
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `produto-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
+    if (error) { setUploading(false); return toast.error(error.message); }
+    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+    setForm((f) => ({ ...f, imagem: data.publicUrl }));
     setUploading(false);
-    toast.success("Imagem enviada");
   }
 
-  async function handleSave() {
-    if (!form.name || !form.slug || !form.category_id) {
-      return toast.error("Preencha nome, slug e categoria.");
-    }
+  async function save() {
+    if (!form.nome.trim()) return toast.error("Nome é obrigatório");
+    if (!form.slug.trim()) return toast.error("Slug é obrigatório");
+    if (!form.category_id) return toast.error("Categoria é obrigatória");
     setSaving(true);
     const payload = {
-      name: form.name,
+      nome: form.nome,
       slug: form.slug,
-      short_description: form.short_description || null,
-      description: form.description || null,
-      base_price: Number(form.base_price),
-      production_days: Number(form.production_days),
+      descricao_curta: form.descricao_curta || null,
+      descricao: form.descricao || null,
+      largura_mm: Number(form.largura_mm),
+      altura_mm: Number(form.altura_mm),
+      margem_percent: Number(form.margem_percent),
+      dias_producao: Number(form.dias_producao),
       category_id: form.category_id,
-      image: form.image || null,
-      active: form.active,
+      imagem: form.imagem || null,
+      ativo: form.ativo,
       bestseller: form.bestseller,
-      new_release: form.new_release,
-      complexity: form.complexity === "" ? null : form.complexity,
-      pricing_mode: form.pricing_mode,
-      fixed_unit_price: form.pricing_mode === "fixed" ? Number(form.fixed_unit_price) : null,
+      novidade: form.novidade,
+      complexidade: form.complexidade || null,
     };
     if (isNew) {
-      const { data, error } = await supabase.from("products").insert(payload).select("id").single();
+      const { data, error } = await supabase.from("produtos").insert(payload).select("id").single();
       setSaving(false);
       if (error) return toast.error(error.message);
       toast.success("Produto criado");
       navigate({ to: "/admin/produtos/$id", params: { id: data.id } });
     } else {
-      const { error } = await supabase.from("products").update(payload).eq("id", id);
+      const { error } = await supabase.from("produtos").update(payload).eq("id", id);
       setSaving(false);
       if (error) return toast.error(error.message);
-      toast.success("Produto atualizado");
+      toast.success("Produto salvo");
     }
   }
 
-  async function handleDelete() {
-    if (isNew || !confirm("Excluir este produto? As opções e itens de pedido vinculados serão afetados.")) return;
-    const { error } = await supabase.from("products").delete().eq("id", id);
+  async function remove() {
+    if (!confirm("Excluir este produto?")) return;
+    const { error } = await supabase.from("produtos").delete().eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Produto excluído");
     navigate({ to: "/admin" });
   }
 
   if (loading) {
-    return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-brand" /></div>;
+    return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-brand" /></div>;
   }
 
   return (
-    <div className="max-w-4xl">
-      <Link to="/admin" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-brand">
-        <ArrowLeft className="h-4 w-4" /> Voltar
-      </Link>
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <h2 className="font-display text-xl font-bold">{isNew ? "Novo produto" : "Editar produto"}</h2>
-        <div className="flex gap-2">
-          {!isNew && (
-            <Button variant="outline" onClick={handleDelete}>
-              <Trash2 className="mr-1.5 h-4 w-4" /> Excluir
-            </Button>
-          )}
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Save className="mr-1.5 h-4 w-4" />}
-            Salvar
-          </Button>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <Button asChild variant="ghost" size="sm">
+          <Link to="/admin"><ArrowLeft className="mr-1 h-4 w-4" /> Voltar</Link>
+        </Button>
+        <div>
+          <h2 className="font-display text-xl font-bold">{isNew ? "Novo produto" : "Editar produto"}</h2>
+          <p className="text-sm text-muted-foreground">Cadastre as dimensões e configure depois materiais, gramaturas, revestimentos e acabamentos permitidos.</p>
         </div>
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[300px_1fr]">
-        <div className="space-y-3">
-          <Label>Imagem de capa</Label>
-          <div className="grid aspect-square place-items-center overflow-hidden rounded-xl border bg-surface-muted">
-            {form.image ? (
-              <img src={form.image} alt="capa" className="h-full w-full object-cover" />
-            ) : (
-              <ImageIcon className="h-12 w-12 text-muted-foreground" />
-            )}
-          </div>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
-          />
-          <Button variant="outline" className="w-full" onClick={() => fileRef.current?.click()} disabled={uploading}>
-            {uploading ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Upload className="mr-1.5 h-4 w-4" />}
-            Enviar imagem
-          </Button>
-          {form.image && (
-            <Button variant="ghost" className="w-full text-destructive" onClick={() => setForm((f) => ({ ...f, image: "" }))}>
-              Remover imagem
-            </Button>
-          )}
-        </div>
-
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="space-y-5 rounded-2xl border bg-card p-6">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <Label>Nome *</Label>
+              <Label>Nome</Label>
               <Input
-                value={form.name}
-                onChange={(e) => setForm((f) => ({
-                  ...f, name: e.target.value,
-                  slug: !isNew || f.slug ? f.slug : slugify(e.target.value),
-                }))}
+                value={form.nome}
+                onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value, slug: f.slug || slugify(e.target.value) }))}
               />
             </div>
             <div>
-              <Label>Slug *</Label>
+              <Label>Slug (URL)</Label>
               <Input value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: slugify(e.target.value) }))} />
             </div>
           </div>
 
           <div>
-            <Label>Categoria *</Label>
-            <Select value={form.category_id} onValueChange={(v) => setForm((f) => ({ ...f, category_id: v }))}>
-              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-              <SelectContent>
-                {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
             <Label>Descrição curta</Label>
-            <Input value={form.short_description}
-              onChange={(e) => setForm((f) => ({ ...f, short_description: e.target.value }))} />
+            <Input value={form.descricao_curta} onChange={(e) => setForm((f) => ({ ...f, descricao_curta: e.target.value }))} />
           </div>
 
           <div>
             <Label>Descrição completa</Label>
-            <Textarea rows={5} value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
+            <Textarea rows={4} value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <Label>Preço base (R$)</Label>
-              <Input type="number" step="0.01" value={form.base_price}
-                onChange={(e) => setForm((f) => ({ ...f, base_price: e.target.value }))} />
+              <Label>Largura (mm)</Label>
+              <Input type="number" step="0.1" value={form.largura_mm} onChange={(e) => setForm((f) => ({ ...f, largura_mm: e.target.value }))} />
             </div>
             <div>
-              <Label>Complexidade (sobrescreve a categoria)</Label>
-              <Select
-                value={form.complexity === "" ? "inherit" : form.complexity}
-                onValueChange={(v) => setForm((f) => ({ ...f, complexity: v === "inherit" ? "" : (v as "simple" | "complex") }))}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="inherit">Herdar da categoria</SelectItem>
-                  <SelectItem value="simple">Simples (+1d a cada 3000 un)</SelectItem>
-                  <SelectItem value="complex">Complexa (+3d a cada 3000 un)</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="mt-1 text-xs text-muted-foreground">Base 3 dias úteis + 1 dia de postagem.</p>
+              <Label>Altura (mm)</Label>
+              <Input type="number" step="0.1" value={form.altura_mm} onChange={(e) => setForm((f) => ({ ...f, altura_mm: e.target.value }))} />
+            </div>
+            <div>
+              <Label>Área (mm²)</Label>
+              <Input readOnly value={(Number(form.largura_mm) * Number(form.altura_mm)).toFixed(2)} className="bg-muted" />
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 rounded-xl border p-4">
-            <Toggle label="Ativo" checked={form.active} onChange={(v) => setForm((f) => ({ ...f, active: v }))} />
-            <Toggle label="Mais vendido" checked={form.bestseller} onChange={(v) => setForm((f) => ({ ...f, bestseller: v }))} />
-            <Toggle label="Lançamento" checked={form.new_release} onChange={(v) => setForm((f) => ({ ...f, new_release: v }))} />
-          </div>
-
-          <div className="rounded-xl border bg-surface-muted p-4 space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <Label className="text-base">Modo de precificação</Label>
-                <p className="text-xs text-muted-foreground">
-                  <strong>Automático</strong>: calcula por área (cm²) × preço do material + laminação.{" "}
-                  <strong>Preço fixo</strong>: você define um preço unitário fechado (ignora material/laminação).
-                </p>
-              </div>
-              <Select
-                value={form.pricing_mode}
-                onValueChange={(v) => setForm((f) => ({ ...f, pricing_mode: v as "auto" | "fixed" }))}
-              >
-                <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <Label>Margem (%)</Label>
+              <Input type="number" step="0.1" value={form.margem_percent} onChange={(e) => setForm((f) => ({ ...f, margem_percent: e.target.value }))} />
+            </div>
+            <div>
+              <Label>Dias de produção</Label>
+              <Input type="number" value={form.dias_producao} onChange={(e) => setForm((f) => ({ ...f, dias_producao: e.target.value }))} />
+            </div>
+            <div>
+              <Label>Categoria</Label>
+              <Select value={form.category_id} onValueChange={(v) => setForm((f) => ({ ...f, category_id: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="auto">Automático (cm²)</SelectItem>
-                  <SelectItem value="fixed">Preço fixo</SelectItem>
+                  {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            {form.pricing_mode === "fixed" && (
-              <div>
-                <Label>Preço unitário fixo (R$)</Label>
-                <Input
-                  type="number" step="0.01"
-                  value={form.fixed_unit_price}
-                  onChange={(e) => setForm((f) => ({ ...f, fixed_unit_price: e.target.value }))}
-                />
-                <p className="mt-1 text-xs text-muted-foreground">Total = preço × quantidade − descontos da faixa.</p>
-              </div>
-            )}
           </div>
 
+          <div>
+            <Label>Complexidade</Label>
+            <Select value={form.complexidade} onValueChange={(v) => setForm((f) => ({ ...f, complexidade: v as FormState["complexidade"] }))}>
+              <SelectTrigger><SelectValue placeholder="Herdar da categoria" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="simple">Simples</SelectItem>
+                <SelectItem value="medium">Média</SelectItem>
+                <SelectItem value="complex">Complexa</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="space-y-5">
+          <div className="rounded-2xl border bg-card p-5">
+            <Label>Imagem</Label>
+            <div className="mt-2 grid aspect-square w-full place-items-center overflow-hidden rounded-xl border bg-surface-muted">
+              {form.imagem ? (
+                <img src={form.imagem} alt={form.nome} className="h-full w-full object-cover" />
+              ) : (
+                <ImageIcon className="h-10 w-10 text-muted-foreground" />
+              )}
+            </div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); }}
+            />
+            <Button type="button" variant="outline" size="sm" className="mt-3 w-full" onClick={() => fileRef.current?.click()} disabled={uploading}>
+              {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+              {form.imagem ? "Trocar imagem" : "Enviar imagem"}
+            </Button>
+          </div>
+
+          <div className="space-y-3 rounded-2xl border bg-card p-5">
+            <div className="flex items-center justify-between">
+              <Label>Ativo</Label>
+              <Switch checked={form.ativo} onCheckedChange={(v) => setForm((f) => ({ ...f, ativo: v }))} />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label>Mais vendido</Label>
+              <Switch checked={form.bestseller} onCheckedChange={(v) => setForm((f) => ({ ...f, bestseller: v }))} />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label>Lançamento</Label>
+              <Switch checked={form.novidade} onCheckedChange={(v) => setForm((f) => ({ ...f, novidade: v }))} />
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-dashed bg-card p-5 text-sm text-muted-foreground">
+            <p className="font-semibold text-foreground">Próximos passos</p>
+            <p className="mt-2">Materiais permitidos, gramaturas, revestimentos, acabamentos e faixas de quantidade serão configurados nas próximas telas (em construção).</p>
+          </div>
+
+          <Button onClick={save} disabled={saving} className="w-full">
+            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            Salvar
+          </Button>
           {!isNew && (
-            <div className="rounded-xl border bg-surface-muted p-4 text-sm">
-              <p className="font-medium">Opções deste produto</p>
-              <p className="mt-1 text-muted-foreground">
-                Gerencie tamanhos, materiais, acabamentos e quantidades em{" "}
-                <Link to="/admin/opcoes" search={{ product: id }} className="text-brand underline">
-                  Opções
-                </Link>.
-              </p>
-            </div>
+            <Button variant="outline" onClick={remove} className="w-full text-destructive hover:text-destructive">
+              <Trash2 className="mr-2 h-4 w-4" /> Excluir
+            </Button>
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <div className="flex items-center justify-between gap-2">
-      <Label className="cursor-pointer">{label}</Label>
-      <Switch checked={checked} onCheckedChange={onChange} />
     </div>
   );
 }
