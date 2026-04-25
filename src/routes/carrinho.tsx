@@ -49,8 +49,8 @@ function CartPage() {
     );
   }
 
-  const shipping = subtotal >= 250 ? 0 : 29.9;
-  const total = subtotal + shipping;
+  // Frete só é calculado no checkout, após o cliente informar o CEP.
+  const total = subtotal;
 
   return (
     <SiteLayout>
