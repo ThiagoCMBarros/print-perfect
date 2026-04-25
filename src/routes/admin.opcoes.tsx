@@ -274,8 +274,9 @@ function OptionRow({
       numeric_value: nv ? Number(nv) : null,
     };
     if (isSize) {
-      patch.width_cm = w ? Number(w) : null;
-      patch.height_cm = h ? Number(h) : null;
+      // mm → cm para persistir
+      patch.width_cm = wMm ? Number(wMm) / 10 : null;
+      patch.height_cm = hMm ? Number(hMm) / 10 : null;
     }
     if (isQty) {
       patch.discount_type = dType;
@@ -294,26 +295,39 @@ function OptionRow({
             <ImageIcon className="h-6 w-6 text-muted-foreground" />
           )}
         </div>
-        <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Rótulo" />
-        <Input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} placeholder="Ordem" />
-        <Input type="number" value={nv} placeholder="Qtd" onChange={(e) => setNv(e.target.value)} />
-        <Button size="sm" disabled={!dirty} onClick={save}><Save className="h-4 w-4" /></Button>
-        <Button size="sm" variant="ghost" onClick={onDelete}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+        <div>
+          <Label className="text-xs">Rótulo</Label>
+          <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Rótulo" />
+        </div>
+        <div>
+          <Label className="text-xs">Ordem</Label>
+          <Input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} placeholder="0" />
+        </div>
+        <div>
+          <Label className="text-xs">Qtd numérica</Label>
+          <Input type="number" value={nv} placeholder="ex: 100" onChange={(e) => setNv(e.target.value)} />
+        </div>
+        <div className="flex items-end">
+          <Button size="sm" disabled={!dirty} onClick={save}><Save className="h-4 w-4" /></Button>
+        </div>
+        <div className="flex items-end">
+          <Button size="sm" variant="ghost" onClick={onDelete}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+        </div>
       </div>
 
       {isSize && (
         <div className="flex flex-wrap items-end gap-2 border-t pt-2">
           <div>
-            <Label className="text-xs">Largura (cm)</Label>
-            <Input type="number" step="0.1" className="w-24" value={w} onChange={(e) => setW(e.target.value)} />
+            <Label className="text-xs">Largura (mm)</Label>
+            <Input type="number" step="1" className="w-24" value={wMm} onChange={(e) => setWMm(e.target.value)} />
           </div>
           <div>
-            <Label className="text-xs">Altura (cm)</Label>
-            <Input type="number" step="0.1" className="w-24" value={h} onChange={(e) => setH(e.target.value)} />
+            <Label className="text-xs">Altura (mm)</Label>
+            <Input type="number" step="1" className="w-24" value={hMm} onChange={(e) => setHMm(e.target.value)} />
           </div>
-          {w && h && (
+          {wMm && hMm && (
             <span className="text-xs text-muted-foreground self-center">
-              Área: <strong>{(Number(w) * Number(h)).toFixed(2)} cm²</strong>
+              Área: <strong>{(Number(wMm) * Number(hMm)).toFixed(2)} mm²</strong> ({((Number(wMm) * Number(hMm)) / 100).toFixed(2)} cm²)
             </span>
           )}
           <div className="ml-auto flex flex-wrap gap-2">
