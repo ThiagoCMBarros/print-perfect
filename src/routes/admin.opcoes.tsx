@@ -393,7 +393,8 @@ function GlobalPricingManager({ kind }: { kind: GlobalKind }) {
   const [rows, setRows] = useState<GlobalRowT[]>([]);
   const [types, setTypes] = useState<MaterialType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [draft, setDraft] = useState({ name: "", price_per_cm2: "0", material_type_id: "" });
+  // UI em R$/mm²; banco em R$/cm² (1 cm² = 100 mm²)
+  const [draft, setDraft] = useState({ name: "", price_per_mm2: "0", material_type_id: "" });
 
   async function load() {
     setLoading(true);
@@ -412,11 +413,11 @@ function GlobalPricingManager({ kind }: { kind: GlobalKind }) {
     if (!draft.name || !draft.material_type_id) return toast.error("Informe nome e tipo.");
     const { error } = await supabase.from(kind).insert({
       name: draft.name,
-      price_per_cm2: Number(draft.price_per_cm2),
+      price_per_cm2: Number(draft.price_per_mm2) * 100,
       material_type_id: draft.material_type_id,
     });
     if (error) return toast.error(error.message);
-    setDraft({ ...draft, name: "", price_per_cm2: "0" });
+    setDraft({ ...draft, name: "", price_per_mm2: "0" });
     toast.success("Cadastrado!");
     load();
   }
