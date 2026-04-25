@@ -246,7 +246,20 @@ function ProductPage() {
             {product.categories && (
               <p className="text-sm text-muted-foreground">{product.categories.name}</p>
             )}
-            <h1 className="mt-1 font-display text-3xl font-bold">{product.nome}</h1>
+            <div className="mt-1 flex items-center gap-2">
+              <h1 className="font-display text-3xl font-bold">{product.nome}</h1>
+              {isAdmin && (
+                <Link
+                  to="/admin/produtos/$id"
+                  params={{ id: product.id }}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  title="Editar produto"
+                  aria-label="Editar produto"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Link>
+              )}
+            </div>
             <div className="mt-2 flex gap-2">
               {product.bestseller && <Badge>Mais vendido</Badge>}
               {product.novidade && <Badge variant="secondary">Lançamento</Badge>}
