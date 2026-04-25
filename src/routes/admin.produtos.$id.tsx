@@ -119,6 +119,8 @@ function AdminProductForm() {
       bestseller: form.bestseller,
       new_release: form.new_release,
       complexity: form.complexity === "" ? null : form.complexity,
+      pricing_mode: form.pricing_mode,
+      fixed_unit_price: form.pricing_mode === "fixed" ? Number(form.fixed_unit_price) : null,
     };
     if (isNew) {
       const { data, error } = await supabase.from("products").insert(payload).select("id").single();
