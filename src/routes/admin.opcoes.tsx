@@ -212,8 +212,9 @@ function OptionRow({
   const [label, setLabel] = useState(opt.label);
   const [order, setOrder] = useState(opt.sort_order);
   const [nv, setNv] = useState<string>(opt.numeric_value?.toString() ?? "");
-  const [w, setW] = useState<string>(o.width_cm?.toString() ?? "");
-  const [h, setH] = useState<string>(o.height_cm?.toString() ?? "");
+  // UI em mm; banco em cm. 1 cm = 10 mm
+  const [wMm, setWMm] = useState<string>(o.width_cm != null ? String(Number(o.width_cm) * 10) : "");
+  const [hMm, setHMm] = useState<string>(o.height_cm != null ? String(Number(o.height_cm) * 10) : "");
   const [dType, setDType] = useState<"none" | "percent" | "fixed">(o.discount_type ?? "none");
   const [dValue, setDValue] = useState<string>(String(o.discount_value ?? 0));
   const [generating, setGenerating] = useState(false);
@@ -223,11 +224,13 @@ function OptionRow({
   const isSize = opt.option_type === "size";
   const isQty = opt.option_type === "quantity";
 
+  const wCmCurrent = o.width_cm != null ? String(Number(o.width_cm) * 10) : "";
+  const hCmCurrent = o.height_cm != null ? String(Number(o.height_cm) * 10) : "";
   const dirty =
     label !== opt.label || order !== opt.sort_order ||
     nv !== (opt.numeric_value?.toString() ?? "") ||
-    w !== (o.width_cm?.toString() ?? "") ||
-    h !== (o.height_cm?.toString() ?? "") ||
+    wMm !== wCmCurrent ||
+    hMm !== hCmCurrent ||
     dType !== (o.discount_type ?? "none") ||
     dValue !== String(o.discount_value ?? 0);
 
