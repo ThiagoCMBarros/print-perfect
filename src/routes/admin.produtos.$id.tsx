@@ -282,6 +282,8 @@ function AdminProductForm() {
           )}
         </div>
       </div>
+
+      {!isNew && <ProductCompositionEditor produtoId={id} />}
     </div>
   );
 }
