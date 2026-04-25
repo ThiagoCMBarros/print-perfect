@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import { ProductCompositionEditor } from "@/components/admin/ProductCompositionEditor";
 
 export const Route = createFileRoute("/admin/produtos/$id")({
   component: AdminProductForm,
@@ -268,11 +269,6 @@ function AdminProductForm() {
               <Label>Lançamento</Label>
               <Switch checked={form.novidade} onCheckedChange={(v) => setForm((f) => ({ ...f, novidade: v }))} />
             </div>
-          </div>
-
-          <div className="rounded-2xl border border-dashed bg-card p-5 text-sm text-muted-foreground">
-            <p className="font-semibold text-foreground">Próximos passos</p>
-            <p className="mt-2">Materiais permitidos, gramaturas, revestimentos, acabamentos e faixas de quantidade serão configurados nas próximas telas (em construção).</p>
           </div>
 
           <Button onClick={save} disabled={saving} className="w-full">
