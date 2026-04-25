@@ -37,7 +37,6 @@ function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
-  const [unitsMap, setUnitsMap] = useState<Record<string, number>>({});
 
   const [addr, setAddr] = useState({
     recipient: "", zip_code: "", street: "", number: "",
@@ -64,42 +63,25 @@ function CheckoutPage() {
       });
   }, [user]);
 
-  // Busca numeric_value das opções de quantidade para calcular o prazo conforme regra.
-  useEffect(() => {
-    const ids = Array.from(new Set(items.map((i) => i.quantity_option_id).filter(Boolean))) as string[];
-    if (ids.length === 0) { setUnitsMap({}); return; }
-    supabase
-      .from("product_options")
-      .select("id, numeric_value")
-      .in("id", ids)
-      .then(({ data }) => {
-        const map: Record<string, number> = {};
-        (data ?? []).forEach((o) => { map[o.id] = Number(o.numeric_value ?? 1); });
-        setUnitsMap(map);
-      });
-  }, [items]);
-
   // Frete real por CEP — null antes do CEP estar válido.
   const shippingQuote = useMemo(
     () => calculateShipping(addr.zip_code, subtotal),
     [addr.zip_code, subtotal],
   );
 
-  // Prazo: produção (regra simples/complex × 3000un) + 1d postagem + dias do frete por região.
+  // Prazo: produção (qtd já é o número total de unidades no novo modelo) + frete por região.
   const productionDays = useMemo(() => {
     if (items.length === 0) return 0;
     return productionDaysForCart(
       items.map((it) => {
-        const units = (it.quantity_option_id && unitsMap[it.quantity_option_id]) || 1;
-        const totalQty = units * it.qtd;
         const complexity = effectiveComplexity(
-          it.produtos?.complexity ?? null,
+          it.produtos?.complexidade ?? null,
           it.produtos?.categories?.complexity ?? null,
         );
-        return { qty: totalQty, complexity, urgency: it.urgency as "standard" | "express" };
+        return { qty: it.qtd, complexity, urgency: it.urgency as "standard" | "express" };
       }),
     );
-  }, [items, unitsMap]);
+  }, [items]);
 
   const estimatedDays = productionDays + (shippingQuote?.deliveryDays ?? 0);
   const shipping = shippingQuote?.cost ?? 0;
