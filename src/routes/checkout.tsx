@@ -146,8 +146,8 @@ function CheckoutPage() {
     const itemsPayload = items.map((it) => ({
       order_id: order.id,
       product_id: it.produto_id,
-      product_name: it.produtos?.name ?? "Produto",
-      product_image: it.produtos?.image ?? null,
+      product_name: it.produtos?.nome ?? "Produto",
+      product_image: it.produtos?.imagem ?? null,
       config: {
         size_option_id: it.size_option_id,
         material_option_id: it.material_option_id,
@@ -229,7 +229,7 @@ function CheckoutPage() {
             <ul className="mt-4 space-y-3 text-sm">
               {items.map((it) => (
                 <li key={it.id} className="flex justify-between gap-2">
-                  <span className="line-clamp-1">{it.qtd}× {it.produtos?.name}</span>
+                  <span className="line-clamp-1">{it.qtd}× {it.produtos?.nome}</span>
                   <span className="shrink-0 font-medium">{formatBRL(Number(it.total_price))}</span>
                 </li>
               ))}

@@ -69,14 +69,14 @@ function CartPage() {
               return (
                 <div key={it.id} className="flex gap-4 rounded-2xl border bg-card p-4">
                   <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-xl text-4xl" style={{ backgroundImage: "var(--gradient-hero)" }}>
-                    {it.produtos?.image && /^(https?:|\/)/.test(it.produtos.image) ? (
-                      <img src={it.produtos.image} alt={it.produtos?.name ?? "Produto"} className="h-full w-full object-cover" />
+                    {it.produtos?.imagem && /^(https?:|\/)/.test(it.produtos.imagem) ? (
+                      <img src={it.produtos.imagem} alt={it.produtos?.nome ?? "Produto"} className="h-full w-full object-cover" />
                     ) : (
-                      <span>{it.produtos?.image ?? "📦"}</span>
+                      <span>{it.produtos?.imagem ?? "📦"}</span>
                     )}
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold">{it.produtos?.name ?? "Produto"}</p>
+                    <p className="font-semibold">{it.produtos?.nome ?? "Produto"}</p>
                     <p className="text-xs text-muted-foreground">
                       Urgência: {it.urgency === "express" ? "Express" : "Padrão"} · {formatBRL(Number(it.unit_price))} / un
                     </p>
