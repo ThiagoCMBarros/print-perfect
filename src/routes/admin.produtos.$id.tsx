@@ -30,7 +30,7 @@ type FormState = {
   ativo: boolean;
   bestseller: boolean;
   novidade: boolean;
-  complexidade: "" | "simple" | "medium" | "complex";
+  complexidade: "" | "simple" | "complex";
 };
 
 const blank: FormState = {
@@ -226,7 +226,6 @@ function AdminProductForm() {
               <SelectTrigger><SelectValue placeholder="Herdar da categoria" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="simple">Simples</SelectItem>
-                <SelectItem value="medium">Média</SelectItem>
                 <SelectItem value="complex">Complexa</SelectItem>
               </SelectContent>
             </Select>
