@@ -95,14 +95,14 @@ function AdminOptions() {
     <div className="max-w-5xl">
       <h2 className="font-display text-xl font-bold">Opções & Preços</h2>
       <p className="text-sm text-muted-foreground">
-        Cadastre tamanhos, materiais (por cm²), laminações (por cm²) e quantidades com desconto.
+        Cadastre tamanhos (em mm), materiais (por mm²), laminações (por mm²) e quantidades com desconto.
       </p>
 
       <Tabs defaultValue="product" className="mt-4">
         <TabsList>
           <TabsTrigger value="product">Opções por produto</TabsTrigger>
-          <TabsTrigger value="materials">Materiais (preço/cm²)</TabsTrigger>
-          <TabsTrigger value="finishes">Laminações (preço/cm²)</TabsTrigger>
+          <TabsTrigger value="materials">Materiais (preço/mm²)</TabsTrigger>
+          <TabsTrigger value="finishes">Laminações (preço/mm²)</TabsTrigger>
         </TabsList>
 
         <TabsContent value="product" className="mt-4 space-y-4">
@@ -121,19 +121,33 @@ function AdminOptions() {
               <div className="rounded-xl border bg-card p-4">
                 <p className="text-sm font-semibold">Adicionar opção</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-[140px_1fr_100px_120px_auto]">
-                  <Select value={draft.option_type} onValueChange={(v) => setDraft({ ...draft, option_type: v as Enums<"option_type"> })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {TYPES.map((t) => <SelectItem key={t} value={t}>{TYPE_LABEL[t]}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <Input placeholder="Rótulo (ex: 9x5 cm, Couché 300g, 100 unidades)" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} />
-                  <Input type="number" placeholder="Ordem" value={draft.sort_order} onChange={(e) => setDraft({ ...draft, sort_order: Number(e.target.value) })} />
-                  <Input type="number" placeholder="Qtd numérica" value={draft.numeric_value} onChange={(e) => setDraft({ ...draft, numeric_value: e.target.value })} />
-                  <Button onClick={add}><Plus className="mr-1.5 h-4 w-4" /> Adicionar</Button>
+                  <div>
+                    <Label className="text-xs">Tipo</Label>
+                    <Select value={draft.option_type} onValueChange={(v) => setDraft({ ...draft, option_type: v as Enums<"option_type"> })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {TYPES.map((t) => <SelectItem key={t} value={t}>{TYPE_LABEL[t]}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Rótulo</Label>
+                    <Input placeholder="ex: 90x50 mm, Couché 300g, 100 unidades" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Ordem</Label>
+                    <Input type="number" placeholder="0" value={draft.sort_order} onChange={(e) => setDraft({ ...draft, sort_order: Number(e.target.value) })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Qtd numérica</Label>
+                    <Input type="number" placeholder="ex: 100" value={draft.numeric_value} onChange={(e) => setDraft({ ...draft, numeric_value: e.target.value })} />
+                  </div>
+                  <div className="flex items-end">
+                    <Button onClick={add}><Plus className="mr-1.5 h-4 w-4" /> Adicionar</Button>
+                  </div>
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Para <strong>Tamanho</strong> defina largura/altura na linha. Para <strong>Material/Laminação</strong>, o nome deve bater com o cadastro global. Para <strong>Quantidade</strong> use "Qtd numérica" (ex: 100, 1000) e configure desconto na linha.
+                  Para <strong>Tamanho</strong> defina largura/altura em mm na linha. Para <strong>Material/Laminação</strong>, o nome deve bater com o cadastro global. Para <strong>Quantidade</strong> use "Qtd numérica" (ex: 100, 1000) e configure desconto na linha.
                 </p>
               </div>
 
@@ -198,8 +212,9 @@ function OptionRow({
   const [label, setLabel] = useState(opt.label);
   const [order, setOrder] = useState(opt.sort_order);
   const [nv, setNv] = useState<string>(opt.numeric_value?.toString() ?? "");
-  const [w, setW] = useState<string>(o.width_cm?.toString() ?? "");
-  const [h, setH] = useState<string>(o.height_cm?.toString() ?? "");
+  // UI em mm; banco em cm. 1 cm = 10 mm
+  const [wMm, setWMm] = useState<string>(o.width_cm != null ? String(Number(o.width_cm) * 10) : "");
+  const [hMm, setHMm] = useState<string>(o.height_cm != null ? String(Number(o.height_cm) * 10) : "");
   const [dType, setDType] = useState<"none" | "percent" | "fixed">(o.discount_type ?? "none");
   const [dValue, setDValue] = useState<string>(String(o.discount_value ?? 0));
   const [generating, setGenerating] = useState(false);
@@ -209,11 +224,13 @@ function OptionRow({
   const isSize = opt.option_type === "size";
   const isQty = opt.option_type === "quantity";
 
+  const wCmCurrent = o.width_cm != null ? String(Number(o.width_cm) * 10) : "";
+  const hCmCurrent = o.height_cm != null ? String(Number(o.height_cm) * 10) : "";
   const dirty =
     label !== opt.label || order !== opt.sort_order ||
     nv !== (opt.numeric_value?.toString() ?? "") ||
-    w !== (o.width_cm?.toString() ?? "") ||
-    h !== (o.height_cm?.toString() ?? "") ||
+    wMm !== wCmCurrent ||
+    hMm !== hCmCurrent ||
     dType !== (o.discount_type ?? "none") ||
     dValue !== String(o.discount_value ?? 0);
 
@@ -257,8 +274,9 @@ function OptionRow({
       numeric_value: nv ? Number(nv) : null,
     };
     if (isSize) {
-      patch.width_cm = w ? Number(w) : null;
-      patch.height_cm = h ? Number(h) : null;
+      // mm → cm para persistir
+      patch.width_cm = wMm ? Number(wMm) / 10 : null;
+      patch.height_cm = hMm ? Number(hMm) / 10 : null;
     }
     if (isQty) {
       patch.discount_type = dType;
@@ -277,26 +295,39 @@ function OptionRow({
             <ImageIcon className="h-6 w-6 text-muted-foreground" />
           )}
         </div>
-        <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Rótulo" />
-        <Input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} placeholder="Ordem" />
-        <Input type="number" value={nv} placeholder="Qtd" onChange={(e) => setNv(e.target.value)} />
-        <Button size="sm" disabled={!dirty} onClick={save}><Save className="h-4 w-4" /></Button>
-        <Button size="sm" variant="ghost" onClick={onDelete}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+        <div>
+          <Label className="text-xs">Rótulo</Label>
+          <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Rótulo" />
+        </div>
+        <div>
+          <Label className="text-xs">Ordem</Label>
+          <Input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} placeholder="0" />
+        </div>
+        <div>
+          <Label className="text-xs">Qtd numérica</Label>
+          <Input type="number" value={nv} placeholder="ex: 100" onChange={(e) => setNv(e.target.value)} />
+        </div>
+        <div className="flex items-end">
+          <Button size="sm" disabled={!dirty} onClick={save}><Save className="h-4 w-4" /></Button>
+        </div>
+        <div className="flex items-end">
+          <Button size="sm" variant="ghost" onClick={onDelete}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+        </div>
       </div>
 
       {isSize && (
         <div className="flex flex-wrap items-end gap-2 border-t pt-2">
           <div>
-            <Label className="text-xs">Largura (cm)</Label>
-            <Input type="number" step="0.1" className="w-24" value={w} onChange={(e) => setW(e.target.value)} />
+            <Label className="text-xs">Largura (mm)</Label>
+            <Input type="number" step="1" className="w-24" value={wMm} onChange={(e) => setWMm(e.target.value)} />
           </div>
           <div>
-            <Label className="text-xs">Altura (cm)</Label>
-            <Input type="number" step="0.1" className="w-24" value={h} onChange={(e) => setH(e.target.value)} />
+            <Label className="text-xs">Altura (mm)</Label>
+            <Input type="number" step="1" className="w-24" value={hMm} onChange={(e) => setHMm(e.target.value)} />
           </div>
-          {w && h && (
+          {wMm && hMm && (
             <span className="text-xs text-muted-foreground self-center">
-              Área: <strong>{(Number(w) * Number(h)).toFixed(2)} cm²</strong>
+              Área: <strong>{(Number(wMm) * Number(hMm)).toFixed(2)} mm²</strong> ({((Number(wMm) * Number(hMm)) / 100).toFixed(2)} cm²)
             </span>
           )}
           <div className="ml-auto flex flex-wrap gap-2">
@@ -362,7 +393,8 @@ function GlobalPricingManager({ kind }: { kind: GlobalKind }) {
   const [rows, setRows] = useState<GlobalRowT[]>([]);
   const [types, setTypes] = useState<MaterialType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [draft, setDraft] = useState({ name: "", price_per_cm2: "0", material_type_id: "" });
+  // UI em R$/mm²; banco em R$/cm² (1 cm² = 100 mm²)
+  const [draft, setDraft] = useState({ name: "", price_per_mm2: "0", material_type_id: "" });
 
   async function load() {
     setLoading(true);
@@ -381,11 +413,11 @@ function GlobalPricingManager({ kind }: { kind: GlobalKind }) {
     if (!draft.name || !draft.material_type_id) return toast.error("Informe nome e tipo.");
     const { error } = await supabase.from(kind).insert({
       name: draft.name,
-      price_per_cm2: Number(draft.price_per_cm2),
+      price_per_cm2: Number(draft.price_per_mm2) * 100,
       material_type_id: draft.material_type_id,
     });
     if (error) return toast.error(error.message);
-    setDraft({ ...draft, name: "", price_per_cm2: "0" });
+    setDraft({ ...draft, name: "", price_per_mm2: "0" });
     toast.success("Cadastrado!");
     load();
   }
@@ -408,24 +440,35 @@ function GlobalPricingManager({ kind }: { kind: GlobalKind }) {
   return (
     <div className="space-y-4">
       <div className="rounded-xl border bg-surface-muted p-4 text-sm">
-        <p className="font-medium">{label} — preço universal por cm²</p>
+        <p className="font-medium">{label} — preço universal por mm²</p>
         <p className="text-muted-foreground text-xs mt-1">
-          Ex.: Couché 300g = R$ 0,05 / cm². Esse preço é usado por TODOS os produtos cuja opção {kind === "materials" ? "Material" : "Acabamento"} tiver o mesmo nome.
+          Ex.: Couché 300g = R$ 0,0005 / mm² (equivale a R$ 0,05 / cm²). Esse preço é usado por TODOS os produtos cuja opção {kind === "materials" ? "Material" : "Acabamento"} tiver o mesmo nome.
         </p>
       </div>
 
       <div className="rounded-xl border bg-card p-4">
         <p className="text-sm font-semibold">Adicionar</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_180px_140px_auto]">
-          <Input placeholder="Nome (ex: Couché 300g)" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
-          <Select value={draft.material_type_id} onValueChange={(v) => setDraft({ ...draft, material_type_id: v })}>
-            <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
-            <SelectContent>
-              {types.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Input type="number" step="0.001" placeholder="R$/cm²" value={draft.price_per_cm2} onChange={(e) => setDraft({ ...draft, price_per_cm2: e.target.value })} />
-          <Button onClick={add}><Plus className="mr-1.5 h-4 w-4" /> Adicionar</Button>
+          <div>
+            <Label className="text-xs">Nome</Label>
+            <Input placeholder="ex: Couché 300g" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+          </div>
+          <div>
+            <Label className="text-xs">Tipo</Label>
+            <Select value={draft.material_type_id} onValueChange={(v) => setDraft({ ...draft, material_type_id: v })}>
+              <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
+              <SelectContent>
+                {types.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">R$ / mm²</Label>
+            <Input type="number" step="0.0001" placeholder="0.0005" value={draft.price_per_mm2} onChange={(e) => setDraft({ ...draft, price_per_mm2: e.target.value })} />
+          </div>
+          <div className="flex items-end">
+            <Button onClick={add}><Plus className="mr-1.5 h-4 w-4" /> Adicionar</Button>
+          </div>
         </div>
       </div>
 
@@ -449,24 +492,39 @@ function GlobalEditRow({ row, types, onSave, onDelete }: {
   onDelete: () => void;
 }) {
   const [name, setName] = useState(row.name);
-  const [price, setPrice] = useState(String(row.price_per_cm2));
+  // UI em mm²; banco em cm². 1 cm² = 100 mm² → mm² = cm²/100
+  const [priceMm2, setPriceMm2] = useState(String(Number(row.price_per_cm2) / 100));
   const [typeId, setTypeId] = useState(row.material_type_id);
-  const dirty = name !== row.name || price !== String(row.price_per_cm2) || typeId !== row.material_type_id;
+  const currentMm2 = String(Number(row.price_per_cm2) / 100);
+  const dirty = name !== row.name || priceMm2 !== currentMm2 || typeId !== row.material_type_id;
 
   return (
     <div className="rounded-xl border bg-card p-3 grid gap-2 sm:grid-cols-[1fr_180px_140px_auto_auto]">
-      <Input value={name} onChange={(e) => setName(e.target.value)} />
-      <Select value={typeId} onValueChange={setTypeId}>
-        <SelectTrigger><SelectValue /></SelectTrigger>
-        <SelectContent>
-          {types.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-        </SelectContent>
-      </Select>
-      <Input type="number" step="0.001" value={price} onChange={(e) => setPrice(e.target.value)} />
-      <Button size="sm" disabled={!dirty} onClick={() => onSave({ name, price_per_cm2: Number(price), material_type_id: typeId })}>
-        <Save className="h-4 w-4" />
-      </Button>
-      <Button size="sm" variant="ghost" onClick={onDelete}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+      <div>
+        <Label className="text-xs">Nome</Label>
+        <Input value={name} onChange={(e) => setName(e.target.value)} />
+      </div>
+      <div>
+        <Label className="text-xs">Tipo</Label>
+        <Select value={typeId} onValueChange={setTypeId}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {types.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label className="text-xs">R$ / mm²</Label>
+        <Input type="number" step="0.0001" value={priceMm2} onChange={(e) => setPriceMm2(e.target.value)} />
+      </div>
+      <div className="flex items-end">
+        <Button size="sm" disabled={!dirty} onClick={() => onSave({ name, price_per_cm2: Number(priceMm2) * 100, material_type_id: typeId })}>
+          <Save className="h-4 w-4" />
+        </Button>
+      </div>
+      <div className="flex items-end">
+        <Button size="sm" variant="ghost" onClick={onDelete}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+      </div>
     </div>
   );
 }
