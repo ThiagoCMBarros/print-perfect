@@ -74,9 +74,11 @@ function CheckoutPage() {
     if (items.length === 0) return 0;
     return productionDaysForCart(
       items.map((it) => {
+        const cmpx = it.produtos?.complexidade ?? null;
+        const catCmpx = it.produtos?.categories?.complexity ?? null;
         const complexity = effectiveComplexity(
-          it.produtos?.complexidade ?? null,
-          it.produtos?.categories?.complexity ?? null,
+          cmpx === "medium" ? null : cmpx,
+          catCmpx === "medium" ? null : catCmpx,
         );
         return { qty: it.qtd, complexity, urgency: it.urgency as "standard" | "express" };
       }),
