@@ -47,6 +47,7 @@ function ProductPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { add } = useCart();
+  const { isAdmin } = useIsAdmin();
 
   const [product, setProduct] = useState<ProdutoWithCategory | null>(null);
   const [loading, setLoading] = useState(true);
