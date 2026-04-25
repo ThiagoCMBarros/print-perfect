@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      acabamentos: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          sort_order: number
+          updated_at: string
+          valor_unitario: number
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          sort_order?: number
+          updated_at?: string
+          valor_unitario?: number
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          sort_order?: number
+          updated_at?: string
+          valor_unitario?: number
+        }
+        Relationships: []
+      }
       addresses: {
         Row: {
           city: string
@@ -77,15 +110,11 @@ export type Database = {
         Row: {
           artwork_back_path: string | null
           artwork_path: string | null
+          composicao: Json
           created_at: string
-          finish_option_id: string | null
           id: string
-          material_option_id: string | null
-          print_side_option_id: string | null
-          product_id: string
-          qty: number
-          quantity_option_id: string | null
-          size_option_id: string | null
+          produto_id: string
+          qtd: number
           total_price: number
           unit_price: number
           urgency: string
@@ -94,15 +123,11 @@ export type Database = {
         Insert: {
           artwork_back_path?: string | null
           artwork_path?: string | null
+          composicao: Json
           created_at?: string
-          finish_option_id?: string | null
           id?: string
-          material_option_id?: string | null
-          print_side_option_id?: string | null
-          product_id: string
-          qty?: number
-          quantity_option_id?: string | null
-          size_option_id?: string | null
+          produto_id: string
+          qtd?: number
           total_price: number
           unit_price: number
           urgency?: string
@@ -111,15 +136,11 @@ export type Database = {
         Update: {
           artwork_back_path?: string | null
           artwork_path?: string | null
+          composicao?: Json
           created_at?: string
-          finish_option_id?: string | null
           id?: string
-          material_option_id?: string | null
-          print_side_option_id?: string | null
-          product_id?: string
-          qty?: number
-          quantity_option_id?: string | null
-          size_option_id?: string | null
+          produto_id?: string
+          qtd?: number
           total_price?: number
           unit_price?: number
           urgency?: string
@@ -127,53 +148,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "cart_items_finish_option_id_fkey"
-            columns: ["finish_option_id"]
+            foreignKeyName: "cart_items_produto_id_fkey"
+            columns: ["produto_id"]
             isOneToOne: false
-            referencedRelation: "product_options"
+            referencedRelation: "produtos"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cart_items_material_option_id_fkey"
-            columns: ["material_option_id"]
-            isOneToOne: false
-            referencedRelation: "product_options"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cart_items_print_side_option_id_fkey"
-            columns: ["print_side_option_id"]
-            isOneToOne: false
-            referencedRelation: "product_options"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cart_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cart_items_quantity_option_id_fkey"
-            columns: ["quantity_option_id"]
-            isOneToOne: false
-            referencedRelation: "product_options"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cart_items_size_option_id_fkey"
-            columns: ["size_option_id"]
-            isOneToOne: false
-            referencedRelation: "product_options"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cart_items_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "admin_users_view"
-            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -213,52 +192,43 @@ export type Database = {
         }
         Relationships: []
       }
-      finishes: {
+      gramaturas: {
         Row: {
-          active: boolean
+          ativo: boolean
           created_at: string
-          description: string | null
           id: string
-          image: string | null
-          material_type_id: string
-          name: string
-          price_modifier: number
-          price_per_cm2: number
+          material_id: string
+          nome: string
           sort_order: number
           updated_at: string
+          valor_mm2: number
         }
         Insert: {
-          active?: boolean
+          ativo?: boolean
           created_at?: string
-          description?: string | null
           id?: string
-          image?: string | null
-          material_type_id: string
-          name: string
-          price_modifier?: number
-          price_per_cm2?: number
+          material_id: string
+          nome: string
           sort_order?: number
           updated_at?: string
+          valor_mm2?: number
         }
         Update: {
-          active?: boolean
+          ativo?: boolean
           created_at?: string
-          description?: string | null
           id?: string
-          image?: string | null
-          material_type_id?: string
-          name?: string
-          price_modifier?: number
-          price_per_cm2?: number
+          material_id?: string
+          nome?: string
           sort_order?: number
           updated_at?: string
+          valor_mm2?: number
         }
         Relationships: [
           {
-            foreignKeyName: "finishes_material_type_id_fkey"
-            columns: ["material_type_id"]
+            foreignKeyName: "gramaturas_material_id_fkey"
+            columns: ["material_id"]
             isOneToOne: false
-            referencedRelation: "material_types"
+            referencedRelation: "materiais"
             referencedColumns: ["id"]
           },
         ]
@@ -299,79 +269,46 @@ export type Database = {
         }
         Relationships: []
       }
-      material_types: {
+      materiais: {
         Row: {
+          ativo: boolean
           created_at: string
-          description: string | null
+          descricao: string | null
           id: string
-          name: string
-          slug: string
+          imagem: string | null
+          nome: string
           sort_order: number
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          name: string
-          slug: string
-          sort_order?: number
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-          slug?: string
-          sort_order?: number
-        }
-        Relationships: []
-      }
-      materials: {
-        Row: {
-          active: boolean
-          created_at: string
-          description: string | null
-          id: string
-          image: string | null
-          material_type_id: string
-          name: string
-          price_modifier: number
-          price_per_cm2: number
-          sort_order: number
+          tipo_material_id: string
           updated_at: string
         }
         Insert: {
-          active?: boolean
+          ativo?: boolean
           created_at?: string
-          description?: string | null
+          descricao?: string | null
           id?: string
-          image?: string | null
-          material_type_id: string
-          name: string
-          price_modifier?: number
-          price_per_cm2?: number
+          imagem?: string | null
+          nome: string
           sort_order?: number
+          tipo_material_id: string
           updated_at?: string
         }
         Update: {
-          active?: boolean
+          ativo?: boolean
           created_at?: string
-          description?: string | null
+          descricao?: string | null
           id?: string
-          image?: string | null
-          material_type_id?: string
-          name?: string
-          price_modifier?: number
-          price_per_cm2?: number
+          imagem?: string | null
+          nome?: string
           sort_order?: number
+          tipo_material_id?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "materials_material_type_id_fkey"
-            columns: ["material_type_id"]
+            foreignKeyName: "materiais_tipo_material_id_fkey"
+            columns: ["tipo_material_id"]
             isOneToOne: false
-            referencedRelation: "material_types"
+            referencedRelation: "tipos_material"
             referencedColumns: ["id"]
           },
         ]
@@ -443,13 +380,6 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "order_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -555,156 +485,238 @@ export type Database = {
           },
         ]
       }
-      product_material_types: {
+      produto_acabamentos_permitidos: {
         Row: {
-          material_type_id: string
-          product_id: string
-          sort_order: number
+          acabamento_id: string
+          produto_id: string
+          qtd_padrao: number
         }
         Insert: {
-          material_type_id: string
-          product_id: string
-          sort_order?: number
+          acabamento_id: string
+          produto_id: string
+          qtd_padrao?: number
         }
         Update: {
-          material_type_id?: string
-          product_id?: string
-          sort_order?: number
+          acabamento_id?: string
+          produto_id?: string
+          qtd_padrao?: number
         }
         Relationships: [
           {
-            foreignKeyName: "product_material_types_material_type_id_fkey"
-            columns: ["material_type_id"]
+            foreignKeyName: "produto_acabamentos_permitidos_acabamento_id_fkey"
+            columns: ["acabamento_id"]
             isOneToOne: false
-            referencedRelation: "material_types"
+            referencedRelation: "acabamentos"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "product_material_types_product_id_fkey"
-            columns: ["product_id"]
+            foreignKeyName: "produto_acabamentos_permitidos_produto_id_fkey"
+            columns: ["produto_id"]
             isOneToOne: false
-            referencedRelation: "products"
+            referencedRelation: "produtos"
             referencedColumns: ["id"]
           },
         ]
       }
-      product_options: {
+      produto_faixas_quantidade: {
         Row: {
           created_at: string
-          discount_type: Database["public"]["Enums"]["qty_discount_type"]
-          discount_value: number
-          height_cm: number | null
+          desconto_tipo: Database["public"]["Enums"]["discount_type"]
+          desconto_valor: number
           id: string
-          image: string | null
-          label: string
-          numeric_value: number | null
-          option_type: Database["public"]["Enums"]["option_type"]
-          price_modifier: number
-          product_id: string
+          produto_id: string
+          qtd_max: number | null
+          qtd_min: number
           sort_order: number
-          width_cm: number | null
         }
         Insert: {
           created_at?: string
-          discount_type?: Database["public"]["Enums"]["qty_discount_type"]
-          discount_value?: number
-          height_cm?: number | null
+          desconto_tipo?: Database["public"]["Enums"]["discount_type"]
+          desconto_valor?: number
           id?: string
-          image?: string | null
-          label: string
-          numeric_value?: number | null
-          option_type: Database["public"]["Enums"]["option_type"]
-          price_modifier?: number
-          product_id: string
+          produto_id: string
+          qtd_max?: number | null
+          qtd_min: number
           sort_order?: number
-          width_cm?: number | null
         }
         Update: {
           created_at?: string
-          discount_type?: Database["public"]["Enums"]["qty_discount_type"]
-          discount_value?: number
-          height_cm?: number | null
+          desconto_tipo?: Database["public"]["Enums"]["discount_type"]
+          desconto_valor?: number
           id?: string
-          image?: string | null
-          label?: string
-          numeric_value?: number | null
-          option_type?: Database["public"]["Enums"]["option_type"]
-          price_modifier?: number
-          product_id?: string
+          produto_id?: string
+          qtd_max?: number | null
+          qtd_min?: number
           sort_order?: number
-          width_cm?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "product_options_product_id_fkey"
-            columns: ["product_id"]
+            foreignKeyName: "produto_faixas_quantidade_produto_id_fkey"
+            columns: ["produto_id"]
             isOneToOne: false
-            referencedRelation: "products"
+            referencedRelation: "produtos"
             referencedColumns: ["id"]
           },
         ]
       }
-      products: {
+      produto_gramaturas_permitidas: {
         Row: {
-          active: boolean
-          base_price: number
+          gramatura_id: string
+          produto_id: string
+        }
+        Insert: {
+          gramatura_id: string
+          produto_id: string
+        }
+        Update: {
+          gramatura_id?: string
+          produto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produto_gramaturas_permitidas_gramatura_id_fkey"
+            columns: ["gramatura_id"]
+            isOneToOne: false
+            referencedRelation: "gramaturas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "produto_gramaturas_permitidas_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produto_materiais_permitidos: {
+        Row: {
+          material_id: string
+          produto_id: string
+        }
+        Insert: {
+          material_id: string
+          produto_id: string
+        }
+        Update: {
+          material_id?: string
+          produto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produto_materiais_permitidos_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "produto_materiais_permitidos_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produto_revestimentos_permitidos: {
+        Row: {
+          produto_id: string
+          revestimento_id: string
+        }
+        Insert: {
+          produto_id: string
+          revestimento_id: string
+        }
+        Update: {
+          produto_id?: string
+          revestimento_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produto_revestimentos_permitidos_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "produto_revestimentos_permitidos_revestimento_id_fkey"
+            columns: ["revestimento_id"]
+            isOneToOne: false
+            referencedRelation: "revestimentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produtos: {
+        Row: {
+          altura_mm: number
+          area_mm2: number | null
+          ativo: boolean
           bestseller: boolean
-          category_id: string
-          complexity: Database["public"]["Enums"]["product_complexity"] | null
+          category_id: string | null
+          complexidade: Database["public"]["Enums"]["product_complexity"] | null
           created_at: string
-          description: string | null
-          fixed_unit_price: number | null
+          descricao: string | null
+          descricao_curta: string | null
+          dias_producao: number
           id: string
-          image: string | null
-          name: string
-          new_release: boolean
-          pricing_mode: Database["public"]["Enums"]["pricing_mode"]
-          production_days: number
-          short_description: string | null
+          imagem: string | null
+          largura_mm: number
+          margem_percent: number
+          nome: string
+          novidade: boolean
           slug: string
           updated_at: string
         }
         Insert: {
-          active?: boolean
-          base_price: number
+          altura_mm?: number
+          area_mm2?: number | null
+          ativo?: boolean
           bestseller?: boolean
-          category_id: string
-          complexity?: Database["public"]["Enums"]["product_complexity"] | null
+          category_id?: string | null
+          complexidade?:
+            | Database["public"]["Enums"]["product_complexity"]
+            | null
           created_at?: string
-          description?: string | null
-          fixed_unit_price?: number | null
+          descricao?: string | null
+          descricao_curta?: string | null
+          dias_producao?: number
           id?: string
-          image?: string | null
-          name: string
-          new_release?: boolean
-          pricing_mode?: Database["public"]["Enums"]["pricing_mode"]
-          production_days?: number
-          short_description?: string | null
+          imagem?: string | null
+          largura_mm?: number
+          margem_percent?: number
+          nome: string
+          novidade?: boolean
           slug: string
           updated_at?: string
         }
         Update: {
-          active?: boolean
-          base_price?: number
+          altura_mm?: number
+          area_mm2?: number | null
+          ativo?: boolean
           bestseller?: boolean
-          category_id?: string
-          complexity?: Database["public"]["Enums"]["product_complexity"] | null
+          category_id?: string | null
+          complexidade?:
+            | Database["public"]["Enums"]["product_complexity"]
+            | null
           created_at?: string
-          description?: string | null
-          fixed_unit_price?: number | null
+          descricao?: string | null
+          descricao_curta?: string | null
+          dias_producao?: number
           id?: string
-          image?: string | null
-          name?: string
-          new_release?: boolean
-          pricing_mode?: Database["public"]["Enums"]["pricing_mode"]
-          production_days?: number
-          short_description?: string | null
+          imagem?: string | null
+          largura_mm?: number
+          margem_percent?: number
+          nome?: string
+          novidade?: boolean
           slug?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "products_category_id_fkey"
+            foreignKeyName: "produtos_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
@@ -746,6 +758,87 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      revestimento_aplicacoes: {
+        Row: {
+          ativo: boolean
+          id: string
+          multiplicador: number
+          nome: string
+          sort_order: number
+        }
+        Insert: {
+          ativo?: boolean
+          id?: string
+          multiplicador?: number
+          nome: string
+          sort_order?: number
+        }
+        Update: {
+          ativo?: boolean
+          id?: string
+          multiplicador?: number
+          nome?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      revestimentos: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          sort_order: number
+          updated_at: string
+          valor_mm2: number
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          sort_order?: number
+          updated_at?: string
+          valor_mm2?: number
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          sort_order?: number
+          updated_at?: string
+          valor_mm2?: number
+        }
+        Relationships: []
+      }
+      tipos_material: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -804,6 +897,17 @@ export type Database = {
           user_id: string
         }[]
       }
+      calc_product_price: {
+        Args: {
+          p_acabamentos: Json
+          p_aplicacao_id: string
+          p_gramatura_id: string
+          p_produto_id: string
+          p_qtd: number
+          p_revestimento_id: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -819,7 +923,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "customer"
       artwork_status: "none" | "pending" | "approved" | "rejected"
-      option_type: "size" | "material" | "finish" | "quantity" | "print_side"
+      discount_type: "none" | "percent" | "fixed"
       order_status:
         | "aguardando_pagamento"
         | "pago"
@@ -832,9 +936,7 @@ export type Database = {
         | "entregue"
         | "cancelado"
       payment_method: "pix" | "credit_card" | "boleto"
-      pricing_mode: "auto" | "fixed"
       product_complexity: "simple" | "complex"
-      qty_discount_type: "none" | "percent" | "fixed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -964,7 +1066,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "customer"],
       artwork_status: ["none", "pending", "approved", "rejected"],
-      option_type: ["size", "material", "finish", "quantity", "print_side"],
+      discount_type: ["none", "percent", "fixed"],
       order_status: [
         "aguardando_pagamento",
         "pago",
@@ -978,9 +1080,7 @@ export const Constants = {
         "cancelado",
       ],
       payment_method: ["pix", "credit_card", "boleto"],
-      pricing_mode: ["auto", "fixed"],
       product_complexity: ["simple", "complex"],
-      qty_discount_type: ["none", "percent", "fixed"],
     },
   },
 } as const
