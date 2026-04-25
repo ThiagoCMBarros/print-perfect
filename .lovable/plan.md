@@ -1,91 +1,41 @@
+# Refatoração — Catálogo dinâmico por composição
 
-Plano para resolver os bugs P0/P1 encontrados na auditoria QA. Foco: deixar o sistema funcional ponta-a-ponta antes de produção. Vou agrupar por sprints de prioridade.
+## Decisões
+- **Reset limpo**: apaga products, product_options, materials, finishes, cart_items. Pedidos antigos preservados (snapshot em config).
+- **Margem % por produto** + faixas de quantidade com desconto.
+- **Acabamentos**: quantidade informada pelo cliente (valor unitário × qtd informada).
+- Dimensões em **mm**, preço de gramatura em **R$/mm²**.
 
-## Sprint 1 — P0 Bloqueadores (essencial antes de produção)
+## Modelo
+- `produtos`: nome, slug, largura_mm, altura_mm, area_mm2 (gerada), margem_percent, ativo, categoria, imagem, descrição, complexidade, dias_producao
+- `tipos_material` (Papel, Vinil, Plástico…)
+- `materiais` (FK tipo) — Couchê, Matte…
+- `gramaturas` (FK material) — nome + valor_mm2 (preço base)
+- `revestimentos` (nome, valor_mm2)
+- `revestimento_aplicacoes` (nome, multiplicador) — Frente=1, Verso=1, F+V=2
+- `acabamentos` (nome, valor_unitario, descrição)
+- `produto_materiais_permitidos` (produto, material)
+- `produto_gramaturas_permitidas` (produto, gramatura)
+- `produto_revestimentos_permitidos` (produto, revestimento)
+- `produto_acabamentos_permitidos` (produto, acabamento, qtd_padrao)
+- `produto_faixas_quantidade` (produto, qtd_min, qtd_max, desconto_tipo, desconto_valor)
+- `cart_items_v2` / `order_items` adaptado para guardar a composição em jsonb
 
-### 1. BUG-001: Cálculo do carrinho ao alterar quantidade
-**Arquivo:** `src/contexts/CartContext.tsx`
-- Reescrever `updateQty` usando o preço unitário real (`unit_price`) e os modificadores já gravados.
-- Calcular `total_price = unit_price * qty * urgency_modifier` de forma consistente.
-- Adicionar guarda contra `qty` inválido (mín 1, máx 9999).
-
-### 2. BUG-005: Persistir arte do editor
-**Arquivos:** `src/components/site/CardEditor.tsx`, `src/routes/produtos.$slug.tsx`, migration nova
-- Criar bucket `cart-artworks` (privado) via migration + RLS (usuário só lê/escreve seus próprios arquivos por prefixo `user_id/`).
-- Adicionar coluna `artwork_path text` em `cart_items`.
-- No `CardEditor`, expor callback `onSave(blob)` que faz upload para `cart-artworks/{user_id}/{uuid}.png` e devolve o path.
-- Na página do produto, salvar `artwork_path` ao adicionar ao carrinho.
-- No checkout, copiar `artwork_path` para `order_items.artwork_path` e marcar `artwork_status='approved'`.
-
-### 3. BUG-003: Pagamento real (Stripe)
-**Decisão:** usar Lovable Payments (Stripe built-in) — não pede conta do usuário.
-- Rodar `recommend_payment_provider` → habilitar Stripe.
-- Criar produtos dinâmicos via Checkout Session (line_items ad-hoc, pois preços variam por configuração).
-- Server function `create-checkout-session` recebe `order_id` e cria sessão Stripe.
-- Server route `/api/stripe-webhook` valida assinatura e atualiza `orders.status` para `pago` + insere em `order_status_history`.
-- Adicionar Pix via Stripe (método nativo BR) e cartão. Boleto fica para depois.
-
-### 4. BUG-010/011/012: Hardening de segurança
-- `src/routes/admin.tsx`: adicionar `beforeLoad` que valida `has_role(admin)` server-side via server function (hoje só checa client-side).
-- Bucket `quote-references`: trocar para privado + criar política de leitura via signed URL gerada por server function ao admin.
-- Validar tamanho/tipo de upload no servidor (não confiar no client).
-
----
-
-## Sprint 2 — P1 Regras de negócio
-
-### 5. BUG-002: Frete real por CEP
-**Arquivos:** `src/routes/checkout.tsx`, nova server function
-- Server function `calculate-shipping(cep, subtotal)` que retorna valor + prazo.
-- MVP: tabela fixa por região (S/SE/CO/N/NE) com base nos 3 primeiros dígitos do CEP.
-- Frete grátis acima de R$ 250 mantém-se.
-- Próxima iteração (fora deste plano): integração Melhor Envio / Correios.
-
-### 6. BUG-008: Prazo de entrega real
-- Calcular `estimated_days` no checkout = `max(production_days dos itens) + dias_frete`.
-- Salvar em `orders.estimated_days` (coluna já existe).
-- Exibir em `/conta/pedidos` e `/pedido/$id`.
-
-### 7. Imagens de produtos (seed)
-- Substituir emojis em `src/data/products.ts` / banco por URLs reais do bucket `product-images`.
-- Adicionar SVG placeholder em `src/components/site/ProductCard.tsx` e demais consumidores quando `image` for nulo.
-
-### 8. Esconder WhatsApp flutuante em /admin
-**Arquivo:** `src/components/site/WhatsAppFloat.tsx`
-- Usar `useLocation()` e retornar `null` se path começar com `/admin`.
-
----
-
-## Sprint 3 — P2 Funcionalidades faltantes (módulos inexistentes)
-
-Estes módulos foram listados na auditoria como ausentes. Cada um vira um épico separado — listo aqui apenas o esqueleto para o usuário priorizar depois:
-
-- **Cupons:** tabela `coupons` + aplicação no carrinho/checkout + CRUD admin.
-- **Banners CMS:** tabela `banners` + CRUD admin + render na home.
-- **Configurações gerais:** tabela `site_settings` (logo, contatos, SEO, redes) + tela admin.
-- **Aprovação de arte pelo cliente:** fluxo em `/conta/pedidos/$id` (já existe `artwork_status`, falta UI).
-- **Recuperação/alteração de senha:** página `/conta` precisa do fluxo de change password.
-- **Confirmação de e-mail:** habilitar no auth + página de aviso pós-cadastro.
-
----
-
-## Ordem de execução proposta
-
-```text
-Sprint 1 (P0) → testar ponta-a-ponta → Sprint 2 (P1) → testar → Sprint 3 (P2 por demanda)
+## Fórmula
+```
+area_mm2 = largura × altura
+valor_base = area_mm2 × gramatura.valor_mm2
+valor_revestimento = area_mm2 × revestimento.valor_mm2 × aplicacao.multiplicador
+valor_acabamentos = Σ (acabamento.valor_unitario × qtd_informada)
+unitario = (valor_base + valor_revestimento + valor_acabamentos) × (1 + margem%)
+subtotal = unitario × qtd
+total = subtotal − desconto_faixa
 ```
 
-## O que vou precisar do usuário
-
-1. Confirmar habilitar **Stripe (Lovable Payments)** para BUG-003.
-2. Confirmar a tabela MVP de frete por região (ou aceitar valores que eu sugerir).
-3. Confirmar se quero atacar **todos os P0+P1 numa rodada só** ou **só P0 primeiro**.
-
-## Resumo técnico das mudanças
-
-- **Migrations novas:** bucket `cart-artworks` + RLS, coluna `artwork_path` em `cart_items`, ajuste de policies do `quote-references`.
-- **Server functions novas:** `create-checkout-session`, `calculate-shipping`, `get-quote-reference-url` (admin).
-- **Server route nova:** `/api/stripe-webhook`.
-- **Arquivos editados:** `CartContext.tsx`, `CardEditor.tsx`, `produtos.$slug.tsx`, `checkout.tsx`, `admin.tsx`, `WhatsAppFloat.tsx`, `ProductCard.tsx`, `pedido.$id.tsx`, `conta.pedidos.tsx`.
-
-Antes de começar preciso saber: **executo só o Sprint 1 (P0) ou Sprint 1+2 de uma vez?** E **confirma habilitar Stripe agora?**
+## Fases
+1. **Schema + reset** (migration única): drop seguro do antigo + criação do novo + RLS + função SQL `calc_product_price`.
+2. **Admin globals**: telas para CRUD de tipos_material, materiais, gramaturas, revestimentos, aplicações, acabamentos.
+3. **Admin produto**: cadastro do produto + multi-select de permissões + faixas de quantidade.
+4. **Frontend público**: página do produto com fluxo step-by-step e cálculo em tempo real (lib `pricing.ts`).
+5. **Carrinho/Checkout/Pedido**: salvar composição em jsonb, recalcular no servidor antes de criar pedido.
+6. **Seed mínimo + QA**.
