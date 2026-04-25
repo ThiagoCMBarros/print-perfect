@@ -18,6 +18,8 @@ import { SLUG_TO_TEMPLATE } from "@/components/site/card-editor/types";
 import { toast } from "sonner";
 import {
   calcPrice, fetchProductBySlug, formatBRL, getOptions, type ProductWithOptions,
+  fetchAllMaterialPricing, fetchAllFinishPricing, findPricingByLabel,
+  type MaterialPricing, type FinishPricing,
 } from "@/lib/catalog";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
