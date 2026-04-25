@@ -21,6 +21,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { Json } from "@/integrations/supabase/types";
+import { ArtworkPicker, type ArtworkValue } from "@/components/site/ArtworkPicker";
 
 export const Route = createFileRoute("/produtos/$slug")({
   head: ({ params }) => ({
@@ -63,6 +64,7 @@ function ProductPage() {
   const [aplicacaoId, setAplicacaoId] = useState<string>("");
   const [acabSel, setAcabSel] = useState<Map<string, number>>(new Map());
   const [qtd, setQtd] = useState<number>(1);
+  const [artwork, setArtwork] = useState<ArtworkValue>({ path: null, filename: null });
 
   const [calc, setCalc] = useState<CalcResult | null>(null);
   const [calcLoading, setCalcLoading] = useState(false);
@@ -197,6 +199,7 @@ function ProductPage() {
       unit_price: calc.unit_price,
       total_price: calc.total,
       qtd,
+      artwork_path: artwork.path,
     });
     setAdding(false);
     if (error) return toast.error(error);
@@ -351,6 +354,26 @@ function ProductPage() {
                 <Label>Quantidade</Label>
                 <Input type="number" min={1} value={qtd} onChange={(e) => setQtd(Math.max(1, Number(e.target.value)))} />
               </div>
+
+              {user && (
+                <div>
+                  <Label>Sua arte</Label>
+                  <ArtworkPicker
+                    userId={user.id}
+                    produtoId={product.id}
+                    categorySlug={product.categories?.slug ?? null}
+                    larguraMm={Number(product.largura_mm)}
+                    alturaMm={Number(product.altura_mm)}
+                    value={artwork}
+                    onChange={setArtwork}
+                  />
+                </div>
+              )}
+              {!user && (
+                <p className="text-xs text-muted-foreground">
+                  Faça login para enviar ou personalizar sua arte agora — você também pode anexar a arte depois, no detalhe do pedido.
+                </p>
+              )}
             </Card>
 
             {/* Preço */}
