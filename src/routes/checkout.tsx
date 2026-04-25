@@ -91,10 +91,10 @@ function CheckoutPage() {
     return productionDaysForCart(
       items.map((it) => {
         const units = (it.quantity_option_id && unitsMap[it.quantity_option_id]) || 1;
-        const totalQty = units * it.qty;
+        const totalQty = units * it.qtd;
         const complexity = effectiveComplexity(
-          it.products?.complexity ?? null,
-          it.products?.categories?.complexity ?? null,
+          it.produtos?.complexity ?? null,
+          it.produtos?.categories?.complexity ?? null,
         );
         return { qty: totalQty, complexity, urgency: it.urgency as "standard" | "express" };
       }),
@@ -145,9 +145,9 @@ function CheckoutPage() {
     // Itens — copia artwork_path do carrinho e marca como "pending" se já tiver arte.
     const itemsPayload = items.map((it) => ({
       order_id: order.id,
-      product_id: it.product_id,
-      product_name: it.products?.name ?? "Produto",
-      product_image: it.products?.image ?? null,
+      product_id: it.produto_id,
+      product_name: it.produtos?.name ?? "Produto",
+      product_image: it.produtos?.image ?? null,
       config: {
         size_option_id: it.size_option_id,
         material_option_id: it.material_option_id,
@@ -156,7 +156,7 @@ function CheckoutPage() {
         urgency: it.urgency,
       },
       unit_price: it.unit_price,
-      qty: it.qty,
+      qty: it.qtd,
       total_price: it.total_price,
       artwork_path: it.artwork_path ?? null,
       artwork_status: (it.artwork_path ? "pending" : "none") as "pending" | "none",
@@ -229,7 +229,7 @@ function CheckoutPage() {
             <ul className="mt-4 space-y-3 text-sm">
               {items.map((it) => (
                 <li key={it.id} className="flex justify-between gap-2">
-                  <span className="line-clamp-1">{it.qty}× {it.products?.name}</span>
+                  <span className="line-clamp-1">{it.qtd}× {it.produtos?.name}</span>
                   <span className="shrink-0 font-medium">{formatBRL(Number(it.total_price))}</span>
                 </li>
               ))}

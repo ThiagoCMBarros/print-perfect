@@ -59,7 +59,7 @@ function CartPage() {
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="space-y-3">
             {items.map((it) => {
-              const slug = it.products?.slug ?? "";
+              const slug = it.produtos?.slug ?? "";
               const fmt = SLUG_TO_TEMPLATE[slug]
                 ?? (slug.includes("cartao") ? "card"
                   : slug.includes("flyer") || slug.includes("panfleto") ? "flyer"
@@ -69,14 +69,14 @@ function CartPage() {
               return (
                 <div key={it.id} className="flex gap-4 rounded-2xl border bg-card p-4">
                   <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-xl text-4xl" style={{ backgroundImage: "var(--gradient-hero)" }}>
-                    {it.products?.image && /^(https?:|\/)/.test(it.products.image) ? (
-                      <img src={it.products.image} alt={it.products?.name ?? "Produto"} className="h-full w-full object-cover" />
+                    {it.produtos?.image && /^(https?:|\/)/.test(it.produtos.image) ? (
+                      <img src={it.produtos.image} alt={it.produtos?.name ?? "Produto"} className="h-full w-full object-cover" />
                     ) : (
-                      <span>{it.products?.image ?? "📦"}</span>
+                      <span>{it.produtos?.image ?? "📦"}</span>
                     )}
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold">{it.products?.name ?? "Produto"}</p>
+                    <p className="font-semibold">{it.produtos?.name ?? "Produto"}</p>
                     <p className="text-xs text-muted-foreground">
                       Urgência: {it.urgency === "express" ? "Express" : "Padrão"} · {formatBRL(Number(it.unit_price))} / un
                     </p>
@@ -93,11 +93,11 @@ function CartPage() {
                       </div>
                     )}
                     <div className="mt-3 flex items-center gap-2">
-                      <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => updateQty(it.id, it.qty - 1)}>
+                      <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => updateQty(it.id, it.qtd - 1)}>
                         <Minus className="h-3 w-3" />
                       </Button>
-                      <span className="w-8 text-center text-sm font-semibold">{it.qty}</span>
-                      <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => updateQty(it.id, it.qty + 1)}>
+                      <span className="w-8 text-center text-sm font-semibold">{it.qtd}</span>
+                      <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => updateQty(it.id, it.qtd + 1)}>
                         <Plus className="h-3 w-3" />
                       </Button>
                       <button onClick={() => remove(it.id)} className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive">
