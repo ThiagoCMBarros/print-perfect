@@ -1,15 +1,30 @@
+version: "3.9"
+
 services:
   web:
-    image: node:22
-    working_dir: /usr/src/app
-    volumes:
-      - .:/usr/src/app
-    ports:
-      - "8083:5173"
-    environment:
-      HOST: 0.0.0.0
-      PORT: 5173
-      VITE_HOST: 0.0.0.0
-      CHOKIDAR_USEPOLLING: "true"
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Variáveis públicas do Supabase/Lovable Cloud (embarcadas no build)
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY}
+        VITE_SUPABASE_PROJECT_ID: ${VITE_SUPABASE_PROJECT_ID}
+    container_name: graficarelli-web
     restart: unless-stopped
+    ports:
+      # Mapeia porta 80 do container → porta 8080 do host
+      # Use um proxy reverso (Traefik/Nginx Proxy Manager/Caddy) na VPS para HTTPS
+      - "8080:80"
+    networks:
+      - web-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  web-network:
+    driver: bridge

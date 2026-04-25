@@ -223,6 +223,7 @@ export type Database = {
           material_type_id: string
           name: string
           price_modifier: number
+          price_per_cm2: number
           sort_order: number
           updated_at: string
         }
@@ -235,6 +236,7 @@ export type Database = {
           material_type_id: string
           name: string
           price_modifier?: number
+          price_per_cm2?: number
           sort_order?: number
           updated_at?: string
         }
@@ -247,6 +249,7 @@ export type Database = {
           material_type_id?: string
           name?: string
           price_modifier?: number
+          price_per_cm2?: number
           sort_order?: number
           updated_at?: string
         }
@@ -333,6 +336,7 @@ export type Database = {
           material_type_id: string
           name: string
           price_modifier: number
+          price_per_cm2: number
           sort_order: number
           updated_at: string
         }
@@ -345,6 +349,7 @@ export type Database = {
           material_type_id: string
           name: string
           price_modifier?: number
+          price_per_cm2?: number
           sort_order?: number
           updated_at?: string
         }
@@ -357,6 +362,7 @@ export type Database = {
           material_type_id?: string
           name?: string
           price_modifier?: number
+          price_per_cm2?: number
           sort_order?: number
           updated_at?: string
         }
@@ -585,6 +591,9 @@ export type Database = {
       product_options: {
         Row: {
           created_at: string
+          discount_type: Database["public"]["Enums"]["qty_discount_type"]
+          discount_value: number
+          height_cm: number | null
           id: string
           image: string | null
           label: string
@@ -593,9 +602,13 @@ export type Database = {
           price_modifier: number
           product_id: string
           sort_order: number
+          width_cm: number | null
         }
         Insert: {
           created_at?: string
+          discount_type?: Database["public"]["Enums"]["qty_discount_type"]
+          discount_value?: number
+          height_cm?: number | null
           id?: string
           image?: string | null
           label: string
@@ -604,9 +617,13 @@ export type Database = {
           price_modifier?: number
           product_id: string
           sort_order?: number
+          width_cm?: number | null
         }
         Update: {
           created_at?: string
+          discount_type?: Database["public"]["Enums"]["qty_discount_type"]
+          discount_value?: number
+          height_cm?: number | null
           id?: string
           image?: string | null
           label?: string
@@ -615,6 +632,7 @@ export type Database = {
           price_modifier?: number
           product_id?: string
           sort_order?: number
+          width_cm?: number | null
         }
         Relationships: [
           {
@@ -635,10 +653,12 @@ export type Database = {
           complexity: Database["public"]["Enums"]["product_complexity"] | null
           created_at: string
           description: string | null
+          fixed_unit_price: number | null
           id: string
           image: string | null
           name: string
           new_release: boolean
+          pricing_mode: Database["public"]["Enums"]["pricing_mode"]
           production_days: number
           short_description: string | null
           slug: string
@@ -652,10 +672,12 @@ export type Database = {
           complexity?: Database["public"]["Enums"]["product_complexity"] | null
           created_at?: string
           description?: string | null
+          fixed_unit_price?: number | null
           id?: string
           image?: string | null
           name: string
           new_release?: boolean
+          pricing_mode?: Database["public"]["Enums"]["pricing_mode"]
           production_days?: number
           short_description?: string | null
           slug: string
@@ -669,10 +691,12 @@ export type Database = {
           complexity?: Database["public"]["Enums"]["product_complexity"] | null
           created_at?: string
           description?: string | null
+          fixed_unit_price?: number | null
           id?: string
           image?: string | null
           name?: string
           new_release?: boolean
+          pricing_mode?: Database["public"]["Enums"]["pricing_mode"]
           production_days?: number
           short_description?: string | null
           slug?: string
@@ -808,7 +832,9 @@ export type Database = {
         | "entregue"
         | "cancelado"
       payment_method: "pix" | "credit_card" | "boleto"
+      pricing_mode: "auto" | "fixed"
       product_complexity: "simple" | "complex"
+      qty_discount_type: "none" | "percent" | "fixed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -952,7 +978,9 @@ export const Constants = {
         "cancelado",
       ],
       payment_method: ["pix", "credit_card", "boleto"],
+      pricing_mode: ["auto", "fixed"],
       product_complexity: ["simple", "complex"],
+      qty_discount_type: ["none", "percent", "fixed"],
     },
   },
 } as const

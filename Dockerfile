@@ -40,7 +40,7 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Copia o build do TanStack Start
 # O output do build do TanStack/Vite com Cloudflare é em .output/public ou dist/
 # Ajuste se seu output for diferente
-COPY --from=builder /app/.output/public /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Caso o output seja em .output/public (TanStack Start padrão), descomente:
 # COPY --from=builder /app/.output/public /usr/share/nginx/html

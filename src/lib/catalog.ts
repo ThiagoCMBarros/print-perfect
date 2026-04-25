@@ -57,6 +57,34 @@ export function getOptions(product: ProductWithOptions, type: DBOption["option_t
   return product.product_options.filter((o) => o.option_type === type);
 }
 
+// ---------- Pricing ----------
+
+export type MaterialPricing = {
+  id: string;
+  name: string;
+  price_per_cm2: number;
+};
+
+export type FinishPricing = {
+  id: string;
+  name: string;
+  price_per_cm2: number;
+};
+
+/**
+ * Cálculo de preço.
+ *
+ * Modo "auto":
+ *   unit = area(cm²) × material.price_per_cm2 + area × finish.price_per_cm2
+ *   subtotal = unit × qty
+ *   aplica desconto da faixa (% ou R$ sobre o subtotal)
+ *
+ * Modo "fixed":
+ *   subtotal = product.fixed_unit_price × qty
+ *   aplica desconto da faixa
+ *
+ * Urgência express adiciona +35% no final.
+ */
 export function calcPrice(
   product: ProductWithOptions,
   sizeId: string | null,
@@ -65,6 +93,8 @@ export function calcPrice(
   quantityId: string | null,
   urgency: "standard" | "express",
   customUnits?: number | null,
+  materialPricing?: MaterialPricing | null,
+  finishPricing?: FinishPricing | null,
 ) {
   const sizes = getOptions(product, "size");
   const materials = getOptions(product, "material");
@@ -74,46 +104,107 @@ export function calcPrice(
   const material = materials.find((m) => m.id === materialId) ?? materials[0];
   const finish = finishes.find((f) => f.id === finishId) ?? finishes[0];
   const qty = quantities.find((q) => q.id === quantityId) ?? quantities[0];
-  const u = urgency === "express" ? 1.35 : 1;
+  const urgencyMod = urgency === "express" ? 1.35 : 1;
 
-  const baseMultipliers =
-    Number(product.base_price) *
-    Number(size?.price_modifier ?? 1) *
-    Number(material?.price_modifier ?? 1) *
-    Number(finish?.price_modifier ?? 1) *
-    u;
+  const units = customUnits && customUnits > 0
+    ? Math.floor(customUnits)
+    : Number(qty?.numeric_value ?? 1);
 
-  let total: number;
-  let units: number;
+  const mode = (product as DBProduct & { pricing_mode?: "auto" | "fixed" }).pricing_mode ?? "auto";
+  const fixedUnit = Number((product as DBProduct & { fixed_unit_price?: number | null }).fixed_unit_price ?? 0);
 
-  if (customUnits && customUnits > 0) {
-    // Use the best per-unit price tier available (largest qty option) as reference.
-    const tiers = quantities
-      .filter((q) => Number(q.numeric_value ?? 0) > 0 && Number(q.price_modifier ?? 0) > 0)
-      .sort((a, b) => Number(b.numeric_value) - Number(a.numeric_value));
-    const reference = tiers[0] ?? qty;
-    const refUnits = Number(reference?.numeric_value ?? 1);
-    const refTotal = baseMultipliers * Number(reference?.price_modifier ?? 1);
-    const perUnit = refTotal / Math.max(1, refUnits);
-    units = Math.floor(customUnits);
-    total = perUnit * units;
+  let unitPrice = 0;
+  let area = 0;
+
+  if (mode === "fixed" && fixedUnit > 0) {
+    unitPrice = fixedUnit;
   } else {
-    total = baseMultipliers * Number(qty?.price_modifier ?? 1);
-    units = Number(qty?.numeric_value ?? 1);
+    // Auto mode: área × preço do material + área × preço da laminação
+    const w = Number((size as DBOption & { width_cm?: number | null })?.width_cm ?? 0);
+    const h = Number((size as DBOption & { height_cm?: number | null })?.height_cm ?? 0);
+    area = w * h;
+    const matPrice = Number(materialPricing?.price_per_cm2 ?? 0);
+    const finPrice = Number(finishPricing?.price_per_cm2 ?? 0);
+    unitPrice = area * (matPrice + finPrice);
+    // Fallback: se não há área ou preço de material configurado, usa base_price legado
+    if (unitPrice <= 0) {
+      unitPrice = Number(product.base_price ?? 0);
+    }
   }
 
+  let subtotal = unitPrice * units;
+
+  // Desconto da faixa de quantidade
+  const dType = (qty as DBOption & { discount_type?: "none" | "percent" | "fixed" })?.discount_type ?? "none";
+  const dValue = Number((qty as DBOption & { discount_value?: number })?.discount_value ?? 0);
+  let discount = 0;
+  if (dType === "percent" && dValue > 0) {
+    discount = subtotal * (dValue / 100);
+  } else if (dType === "fixed" && dValue > 0) {
+    discount = dValue;
+  }
+  subtotal = Math.max(0, subtotal - discount);
+
+  const total = subtotal * urgencyMod;
   const unit = total / Math.max(1, units);
+
   const complexity = effectiveComplexity(
     (product as DBProduct & { complexity?: Complexity | null }).complexity,
     product.categories?.complexity,
   );
   const days = productionDaysForItem(units, complexity, urgency);
+
   return {
     unit: Math.round(unit * 100) / 100,
     total: Math.round(total * 100) / 100,
     units,
     days,
     complexity,
+    area: Math.round(area * 100) / 100,
+    discount: Math.round(discount * 100) / 100,
+    pricingMode: mode,
     selected: { size, material, finish, qty },
   };
 }
+
+// Carrega preços globais de materiais e laminações (cm²)
+export async function fetchMaterialPricing(materialOptionLabel: string | undefined | null) {
+  if (!materialOptionLabel) return null;
+  const { data } = await supabase
+    .from("materials")
+    .select("id, name, price_per_cm2")
+    .ilike("name", materialOptionLabel)
+    .maybeSingle();
+  return data as MaterialPricing | null;
+}
+
+export async function fetchFinishPricing(finishOptionLabel: string | undefined | null) {
+  if (!finishOptionLabel) return null;
+  const { data } = await supabase
+    .from("finishes")
+    .select("id, name, price_per_cm2")
+    .ilike("name", finishOptionLabel)
+    .maybeSingle();
+  return data as FinishPricing | null;
+}
+
+export async function fetchAllMaterialPricing() {
+  const { data } = await supabase.from("materials").select("id, name, price_per_cm2");
+  return (data ?? []) as MaterialPricing[];
+}
+
+export async function fetchAllFinishPricing() {
+  const { data } = await supabase.from("finishes").select("id, name, price_per_cm2");
+  return (data ?? []) as FinishPricing[];
+}
+
+// Helper: dada uma opção (material/finish) do produto, encontra o preço universal correspondente pelo nome
+export function findPricingByLabel<T extends { name: string }>(
+  list: T[],
+  label: string | undefined | null,
+): T | null {
+  if (!label) return null;
+  const norm = label.trim().toLowerCase();
+  return list.find((x) => x.name.trim().toLowerCase() === norm) ?? null;
+}
+

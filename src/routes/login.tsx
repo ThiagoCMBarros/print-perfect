@@ -23,7 +23,9 @@ const signInSchema = z.object({
 });
 
 export const Route = createFileRoute("/login")({
-  validateSearch: (s: Record<string, unknown>) => ({ redirect: (s.redirect as string) || "/" }),
+  validateSearch: (s: Record<string, unknown>): { redirect?: string } => ({
+    redirect: typeof s.redirect === "string" ? s.redirect : undefined,
+  }),
   head: () => ({ meta: [{ title: "Entrar — GráficaPro" }] }),
   component: AuthPage,
 });
