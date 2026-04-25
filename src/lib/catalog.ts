@@ -69,8 +69,10 @@ export type CalcResult = {
 };
 
 export async function calcProductPrice(input: CalcInput): Promise<CalcResult | null> {
-  // @ts-expect-error: RPC function not in generated types yet
-  const { data, error } = await supabase.rpc("calc_product_price", {
+  const { data, error } = await (supabase.rpc as unknown as (
+    fn: string,
+    args: Record<string, unknown>,
+  ) => Promise<{ data: unknown; error: { message: string } | null }>)("calc_product_price", {
     p_produto_id: input.produto_id,
     p_gramatura_id: input.gramatura_id,
     p_revestimento_id: input.revestimento_id ?? null,
