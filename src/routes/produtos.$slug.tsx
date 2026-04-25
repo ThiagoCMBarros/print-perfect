@@ -21,6 +21,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { Json } from "@/integrations/supabase/types";
+import { ArtworkPicker, type ArtworkValue } from "@/components/site/ArtworkPicker";
 
 export const Route = createFileRoute("/produtos/$slug")({
   head: ({ params }) => ({
