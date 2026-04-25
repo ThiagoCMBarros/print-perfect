@@ -265,6 +265,39 @@ function AdminProductForm() {
             <Toggle label="Lançamento" checked={form.new_release} onChange={(v) => setForm((f) => ({ ...f, new_release: v }))} />
           </div>
 
+          <div className="rounded-xl border bg-surface-muted p-4 space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <Label className="text-base">Modo de precificação</Label>
+                <p className="text-xs text-muted-foreground">
+                  <strong>Automático</strong>: calcula por área (cm²) × preço do material + laminação.{" "}
+                  <strong>Preço fixo</strong>: você define um preço unitário fechado (ignora material/laminação).
+                </p>
+              </div>
+              <Select
+                value={form.pricing_mode}
+                onValueChange={(v) => setForm((f) => ({ ...f, pricing_mode: v as "auto" | "fixed" }))}
+              >
+                <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto">Automático (cm²)</SelectItem>
+                  <SelectItem value="fixed">Preço fixo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {form.pricing_mode === "fixed" && (
+              <div>
+                <Label>Preço unitário fixo (R$)</Label>
+                <Input
+                  type="number" step="0.01"
+                  value={form.fixed_unit_price}
+                  onChange={(e) => setForm((f) => ({ ...f, fixed_unit_price: e.target.value }))}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">Total = preço × quantidade − descontos da faixa.</p>
+              </div>
+            )}
+          </div>
+
           {!isNew && (
             <div className="rounded-xl border bg-surface-muted p-4 text-sm">
               <p className="font-medium">Opções deste produto</p>
