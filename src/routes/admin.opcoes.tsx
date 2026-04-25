@@ -95,7 +95,7 @@ function AdminOptions() {
     <div className="max-w-5xl">
       <h2 className="font-display text-xl font-bold">Opções & Preços</h2>
       <p className="text-sm text-muted-foreground">
-        Cadastre tamanhos, materiais (por cm²), laminações (por cm²) e quantidades com desconto.
+        Cadastre tamanhos (em mm), materiais (por mm²), laminações (por mm²) e quantidades com desconto.
       </p>
 
       <Tabs defaultValue="product" className="mt-4">
