@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/catalog";
+import { CompositionSummary } from "@/components/site/CompositionSummary";
 import { calculateShipping, FREE_SHIPPING_AMOUNT } from "@/lib/shipping";
 import { productionDaysForCart, effectiveComplexity } from "@/lib/production-time";
 
