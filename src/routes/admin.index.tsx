@@ -6,7 +6,6 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { formatBRL } from "@/lib/catalog";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -14,7 +13,7 @@ export const Route = createFileRoute("/admin/")({
   component: AdminProductsList,
 });
 
-type Row = Tables<"products"> & { categories: { name: string; slug: string } | null };
+type Row = Tables<"produtos"> & { categories: { name: string; slug: string } | null };
 
 function AdminProductsList() {
   const [products, setProducts] = useState<Row[]>([]);
@@ -24,11 +23,11 @@ function AdminProductsList() {
   async function load() {
     setLoading(true);
     const { data, error } = await supabase
-      .from("products")
+      .from("produtos")
       .select("*, categories(name, slug)")
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
-    setProducts((data as Row[]) ?? []);
+    setProducts((data as unknown as Row[]) ?? []);
     setLoading(false);
   }
 
@@ -36,16 +35,16 @@ function AdminProductsList() {
 
   async function toggleActive(p: Row) {
     const { error } = await supabase
-      .from("products")
-      .update({ active: !p.active })
+      .from("produtos")
+      .update({ ativo: !p.ativo })
       .eq("id", p.id);
     if (error) return toast.error(error.message);
-    setProducts((prev) => prev.map((x) => x.id === p.id ? { ...x, active: !p.active } : x));
-    toast.success(`Produto ${!p.active ? "ativado" : "desativado"}`);
+    setProducts((prev) => prev.map((x) => x.id === p.id ? { ...x, ativo: !p.ativo } : x));
+    toast.success(`Produto ${!p.ativo ? "ativado" : "desativado"}`);
   }
 
   const filtered = products.filter((p) =>
-    !q ? true : p.name.toLowerCase().includes(q.toLowerCase()),
+    !q ? true : p.nome.toLowerCase().includes(q.toLowerCase()),
   );
 
   return (
@@ -80,8 +79,8 @@ function AdminProductsList() {
                 <th className="p-3">Imagem</th>
                 <th className="p-3">Nome</th>
                 <th className="p-3">Categoria</th>
-                <th className="p-3">Preço base</th>
-                <th className="p-3">Prazo</th>
+                <th className="p-3">Dimensão (mm)</th>
+                <th className="p-3">Margem</th>
                 <th className="p-3">Destaques</th>
                 <th className="p-3 text-center">Ativo</th>
                 <th className="p-3 text-right">Ações</th>
@@ -92,28 +91,28 @@ function AdminProductsList() {
                 <tr key={p.id} className="border-b transition-colors last:border-0 hover:bg-accent/30">
                   <td className="p-3">
                     <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-lg border bg-surface-muted">
-                      {p.image ? (
-                        <img src={p.image} alt={p.name} className="h-full w-full object-cover" />
+                      {p.imagem ? (
+                        <img src={p.imagem} alt={p.nome} className="h-full w-full object-cover" />
                       ) : (
                         <ImageIcon className="h-5 w-5 text-muted-foreground" />
                       )}
                     </div>
                   </td>
                   <td className="p-3">
-                    <p className="font-medium">{p.name}</p>
+                    <p className="font-medium">{p.nome}</p>
                     <p className="text-xs text-muted-foreground">/{p.slug}</p>
                   </td>
                   <td className="p-3 text-muted-foreground">{p.categories?.name ?? "—"}</td>
-                  <td className="p-3 font-medium">{formatBRL(Number(p.base_price))}</td>
-                  <td className="p-3 text-muted-foreground">{p.production_days}d</td>
+                  <td className="p-3 text-muted-foreground">{Number(p.largura_mm)}×{Number(p.altura_mm)} mm</td>
+                  <td className="p-3 text-muted-foreground">{Number(p.margem_percent)}%</td>
                   <td className="p-3">
                     <div className="flex gap-1">
                       {p.bestseller && <Badge variant="secondary">Top</Badge>}
-                      {p.new_release && <Badge variant="outline">Novo</Badge>}
+                      {p.novidade && <Badge variant="outline">Novo</Badge>}
                     </div>
                   </td>
                   <td className="p-3 text-center">
-                    <Switch checked={p.active} onCheckedChange={() => toggleActive(p)} />
+                    <Switch checked={p.ativo} onCheckedChange={() => toggleActive(p)} />
                   </td>
                   <td className="p-3 text-right">
                     <Button asChild size="sm" variant="ghost">

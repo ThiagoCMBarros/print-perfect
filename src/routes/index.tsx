@@ -12,7 +12,7 @@ import { ProductCard } from "@/components/site/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type DBCategory } from "@/lib/catalog";
 import { getCachedCategories, getCachedProducts } from "@/lib/catalog-cache";
-import type { Tables } from "@/integrations/supabase/types";
+import type { ProdutoWithCategory } from "@/lib/catalog";
 import heroImg from "@/assets/hero-printing.jpg";
 
 export const Route = createFileRoute("/")({
@@ -56,7 +56,7 @@ const testimonials = [
 
 function HomePage() {
   const [categories, setCategories] = useState<DBCategory[]>([]);
-  const [featured, setFeatured] = useState<Tables<"products">[]>([]);
+  const [featured, setFeatured] = useState<ProdutoWithCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
@@ -72,7 +72,7 @@ function HomePage() {
         const sorted = [...prods].sort(
           (a, b) =>
             Number(!!b.bestseller) - Number(!!a.bestseller) ||
-            Number(!!b.new_release) - Number(!!a.new_release),
+            Number(!!b.novidade) - Number(!!a.novidade),
         );
         setFeatured(sorted.slice(0, 4));
       })
