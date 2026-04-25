@@ -127,22 +127,46 @@ function CheckoutPage() {
       return toast.error(error?.message ?? "Erro ao criar pedido");
     }
 
-    // Itens — copia artwork_path do carrinho e marca como "pending" se já tiver arte.
-    const itemsPayload = items.map((it) => ({
-      order_id: order.id,
-      product_id: it.produto_id,
-      product_name: it.produtos?.nome ?? "Produto",
-      product_image: it.produtos?.imagem ?? null,
-      config: {
-        composicao: it.composicao,
-        urgency: it.urgency,
-      },
-      unit_price: it.unit_price,
-      qty: it.qtd,
-      total_price: it.total_price,
-      artwork_path: it.artwork_path ?? null,
-      artwork_status: (it.artwork_path ? "pending" : "none") as "pending" | "none",
-      artwork_uploaded_at: it.artwork_path ? new Date().toISOString() : null,
+    // Itens — move arte do bucket de carrinho para o de pedidos.
+    const itemsPayload = await Promise.all(items.map(async (it) => {
+      let artworkPath: string | null = null;
+      if (it.artwork_path) {
+        try {
+          const { data: blob, error: dlErr } = await supabase.storage.from("cart-artworks").download(it.artwork_path);
+          if (!dlErr && blob) {
+            const ext = (it.artwork_path.split(".").pop() ?? "bin").toLowerCase();
+            const newPath = `${order.id}/${crypto.randomUUID()}.${ext}`;
+            const { error: upErr } = await supabase.storage.from("order-artworks").upload(newPath, blob, {
+              cacheControl: "3600",
+              upsert: false,
+              contentType: blob.type,
+            });
+            if (!upErr) {
+              artworkPath = newPath;
+              // Limpa do carrinho
+              await supabase.storage.from("cart-artworks").remove([it.artwork_path]);
+            }
+          }
+        } catch (e) {
+          console.error("Falha ao mover arte:", e);
+        }
+      }
+      return {
+        order_id: order.id,
+        product_id: it.produto_id,
+        product_name: it.produtos?.nome ?? "Produto",
+        product_image: it.produtos?.imagem ?? null,
+        config: {
+          composicao: it.composicao,
+          urgency: it.urgency,
+        },
+        unit_price: it.unit_price,
+        qty: it.qtd,
+        total_price: it.total_price,
+        artwork_path: artworkPath,
+        artwork_status: (artworkPath ? "pending" : "none") as "pending" | "none",
+        artwork_uploaded_at: artworkPath ? new Date().toISOString() : null,
+      };
     }));
     const { error: itemsErr } = await supabase.from("order_items").insert(itemsPayload);
     if (itemsErr) {
