@@ -12,7 +12,7 @@ import { Slider } from "@/components/ui/slider";
 import { PageLoader } from "@/components/site/PageLoader";
 import { type DBCategory } from "@/lib/catalog";
 import { getCachedCategories, getCachedProducts } from "@/lib/catalog-cache";
-import type { Tables } from "@/integrations/supabase/types";
+import type { ProdutoWithCategory } from "@/lib/catalog";
 
 const searchSchema = z.object({
   category: z.string().optional(),
@@ -35,9 +35,7 @@ export const Route = createFileRoute("/produtos/")({
   component: ProductsPage,
 });
 
-type ProductRow = Tables<"products"> & {
-  categories: Pick<DBCategory, "id" | "slug" | "name"> | null;
-};
+type ProductRow = ProdutoWithCategory;
 
 function ProductsPage() {
   const search = Route.useSearch();
@@ -71,17 +69,14 @@ function ProductsPage() {
 
   const filtered = useMemo(() => {
     let list = [...products];
-    if (search.maxPrice) list = list.filter((p) => Number(p.base_price) <= search.maxPrice!);
-    if (search.maxDays) list = list.filter((p) => p.production_days <= search.maxDays!);
+    if (search.maxDays) list = list.filter((p) => p.dias_producao <= search.maxDays!);
     switch (search.sort) {
-      case "price-asc": list.sort((a, b) => Number(a.base_price) - Number(b.base_price)); break;
-      case "price-desc": list.sort((a, b) => Number(b.base_price) - Number(a.base_price)); break;
-      case "new": list.sort((a, b) => Number(!!b.new_release) - Number(!!a.new_release)); break;
+      case "new": list.sort((a, b) => Number(!!b.novidade) - Number(!!a.novidade)); break;
       case "bestsellers":
       default: list.sort((a, b) => Number(!!b.bestseller) - Number(!!a.bestseller));
     }
     return list;
-  }, [products, search.maxPrice, search.maxDays, search.sort]);
+  }, [products, search.maxDays, search.sort]);
 
   const activeCategory = categories.find((c) => c.slug === search.category);
   const hasFilters = !!(search.category || search.q || search.maxPrice || search.maxDays);
