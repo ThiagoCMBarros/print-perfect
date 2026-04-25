@@ -74,11 +74,9 @@ function CheckoutPage() {
     if (items.length === 0) return 0;
     return productionDaysForCart(
       items.map((it) => {
-        const cmpx = it.produtos?.complexidade ?? null;
-        const catCmpx = it.produtos?.categories?.complexity ?? null;
         const complexity = effectiveComplexity(
-          cmpx === "medium" ? null : cmpx,
-          catCmpx === "medium" ? null : catCmpx,
+          it.produtos?.complexidade ?? null,
+          it.produtos?.categories?.complexity ?? null,
         );
         return { qty: it.qtd, complexity, urgency: it.urgency as "standard" | "express" };
       }),
@@ -133,10 +131,7 @@ function CheckoutPage() {
       product_name: it.produtos?.nome ?? "Produto",
       product_image: it.produtos?.imagem ?? null,
       config: {
-        size_option_id: it.size_option_id,
-        material_option_id: it.material_option_id,
-        finish_option_id: it.finish_option_id,
-        quantity_option_id: it.quantity_option_id,
+        composicao: it.composicao,
         urgency: it.urgency,
       },
       unit_price: it.unit_price,
