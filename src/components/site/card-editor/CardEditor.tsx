@@ -1,0 +1,379 @@
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PenTool, Download, Save, Loader2, Type, ImagePlus, RotateCw } from "lucide-react";
+import { CanvasStage } from "./CanvasStage";
+import { LayerControls } from "./LayerControls";
+import { BackgroundControls } from "./BackgroundControls";
+import { LayersPanel } from "./LayersPanel";
+import { renderToBlob } from "./exportCanvas";
+import {
+  TEMPLATES,
+  SLUG_TO_TEMPLATE,
+  buildDefaultLayers,
+  FONT_FAMILIES,
+  type Background,
+  type Layer,
+  type LogoLayer,
+  type TemplateKey,
+  type TemplateMeta,
+  type TextLayer,
+} from "./types";
+
+type Props = {
+  triggerLabel?: string;
+  triggerNode?: ReactNode;
+  dialogTitle?: string;
+  defaultTemplate?: TemplateKey;
+  categorySlug?: string;
+  lockTemplate?: boolean;
+  hideTemplateSelector?: boolean;
+  /** Quando definido, sobrescreve as dimensões do template (útil para "custom"). */
+  customSize?: { w: number; h: number };
+  /** Permite ao usuário ajustar w/h quando template = "custom". */
+  allowResizeCanvas?: boolean;
+  defaultBackground?: Background;
+  /** Não cria as camadas de texto padrão do template. */
+  emptyDefault?: boolean;
+  onSave?: (blob: Blob) => Promise<void> | void;
+  enableSave?: boolean;
+  saveLabel?: string;
+  /** Modo personalização: bloqueia adicionar texto, apenas edita campos existentes + logo. */
+  customizationMode?: boolean;
+  /** URL de uma imagem para pré-carregar como camada inicial ao abrir o editor. */
+  initialImageUrl?: string;
+};
+
+export function CardEditor({
+  triggerLabel = "Personalizar arte",
+  triggerNode,
+  dialogTitle = "Editor de arte",
+  defaultTemplate,
+  categorySlug,
+  lockTemplate = false,
+  hideTemplateSelector = false,
+  customSize,
+  allowResizeCanvas = false,
+  defaultBackground,
+  emptyDefault = false,
+  onSave,
+  enableSave = false,
+  saveLabel = "Salvar arte e usar no pedido",
+  customizationMode = false,
+  initialImageUrl,
+}: Props) {
+  const initial: TemplateKey =
+    defaultTemplate ?? (categorySlug ? SLUG_TO_TEMPLATE[categorySlug] : undefined) ?? "card";
+  const [open, setOpen] = useState(false);
+  const [tpl, setTpl] = useState<TemplateKey>(initial);
+  const baseT = TEMPLATES[tpl];
+  const [customDims, setCustomDims] = useState<{ w: number; h: number }>(
+    customSize ?? { w: baseT.w, h: baseT.h },
+  );
+  const [rotated, setRotated] = useState(false);
+  const t: TemplateMeta = useMemo(() => {
+    if (tpl === "custom" || customSize || rotated) {
+      return { ...baseT, w: customDims.w, h: customDims.h };
+    }
+    return baseT;
+  }, [tpl, baseT, customDims, customSize, rotated]);
+
+  const [background, setBackground] = useState<Background>(defaultBackground ?? { type: "solid", color: "#0f172a" });
+  const [layers, setLayers] = useState<Layer[]>(() => (emptyDefault ? [] : buildDefaultLayers(t)));
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const lastTpl = useRef(tpl);
+
+  // Reset layers ao trocar template (não em modo lock e não em emptyDefault)
+  useEffect(() => {
+    if (lastTpl.current === tpl) return;
+    lastTpl.current = tpl;
+    if (!emptyDefault) setLayers(buildDefaultLayers(TEMPLATES[tpl]));
+    setSelectedId(null);
+  }, [tpl, emptyDefault]);
+
+  // Pré-carrega a imagem inicial (logo/favicon atual) ao abrir o dialog
+  const loadedInitialFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!open || !initialImageUrl) return;
+    if (loadedInitialFor.current === initialImageUrl) return;
+    loadedInitialFor.current = initialImageUrl;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const maxW = t.w * 0.9;
+      const maxH = t.h * 0.9;
+      const ratio = Math.min(maxW / img.width, maxH / img.height, 1);
+      const w = Math.round(img.width * ratio);
+      const h = Math.round(img.height * ratio);
+      const newLayer: LogoLayer = {
+        id: crypto.randomUUID(),
+        type: "logo",
+        x: Math.round((t.w - w) / 2),
+        y: Math.round((t.h - h) / 2),
+        w, h,
+        rotation: 0,
+        src: initialImageUrl,
+        opacity: 1,
+      };
+      setLayers((prev) => [...prev, newLayer]);
+      setSelectedId(newLayer.id);
+    };
+    img.onerror = () => { loadedInitialFor.current = null; };
+    img.src = initialImageUrl;
+  }, [open, initialImageUrl, t.w, t.h]);
+
+  const selected = useMemo(() => layers.find((l) => l.id === selectedId) ?? null, [layers, selectedId]);
+
+  const updateLayer = (id: string, patch: Partial<Layer>) => {
+    setLayers((prev) =>
+      prev.map((l) => (l.id === id ? ({ ...l, ...patch } as Layer) : l)),
+    );
+  };
+
+  const deleteLayer = (id: string) => {
+    setLayers((prev) => prev.filter((l) => l.id !== id));
+    setSelectedId(null);
+  };
+
+  const duplicateLayer = (id: string) => {
+    setLayers((prev) => {
+      const layer = prev.find((l) => l.id === id);
+      if (!layer) return prev;
+      const copy: Layer = { ...layer, id: crypto.randomUUID(), x: layer.x + 12, y: layer.y + 12 } as Layer;
+      const idx = prev.findIndex((l) => l.id === id);
+      const next = [...prev];
+      next.splice(idx + 1, 0, copy);
+      setSelectedId(copy.id);
+      return next;
+    });
+  };
+
+  const reorderLayer = (id: string, action: "front" | "back" | "forward" | "backward") => {
+    setLayers((prev) => {
+      const idx = prev.findIndex((l) => l.id === id);
+      if (idx === -1) return prev;
+      const next = [...prev];
+      const [item] = next.splice(idx, 1);
+      let newIdx = idx;
+      if (action === "front") newIdx = next.length;
+      else if (action === "back") newIdx = 0;
+      else if (action === "forward") newIdx = Math.min(next.length, idx + 1);
+      else if (action === "backward") newIdx = Math.max(0, idx - 1);
+      next.splice(newIdx, 0, item);
+      return next;
+    });
+  };
+
+  const addText = () => {
+    const newLayer: TextLayer = {
+      id: crypto.randomUUID(),
+      type: "text",
+      x: Math.round(t.w * 0.15),
+      y: Math.round(t.h * 0.45),
+      w: Math.round(t.w * 0.7),
+      h: Math.round(t.font.line * 1.4),
+      rotation: 0,
+      content: "Novo texto",
+      color: "#ffffff",
+      fontSize: t.font.line,
+      fontWeight: 600,
+      fontFamily: FONT_FAMILIES[0].value,
+      align: "left",
+    };
+    setLayers((prev) => [...prev, newLayer]);
+    setSelectedId(newLayer.id);
+  };
+
+  const handleLogoUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = t.w * 0.3;
+        const ratio = Math.min(maxW / img.width, (t.h * 0.3) / img.height);
+        const w = Math.round(img.width * ratio);
+        const h = Math.round(img.height * ratio);
+        const newLayer: LogoLayer = {
+          id: crypto.randomUUID(),
+          type: "logo",
+          x: Math.round(t.w * 0.6),
+          y: Math.round(t.h * 0.08),
+          w, h,
+          rotation: 0,
+          src: reader.result as string,
+          opacity: 1,
+        };
+        setLayers((prev) => [...prev, newLayer]);
+        setSelectedId(newLayer.id);
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  async function exportPng() {
+    const blob = await renderToBlob(t, background, layers);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `arte-${tpl}.png`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleSave() {
+    if (!onSave) return;
+    setSaving(true);
+    try {
+      const blob = await renderToBlob(t, background, layers);
+      await onSave(blob);
+      setOpen(false);
+    } catch (err) {
+      console.error("[CardEditor] erro ao salvar arte:", err);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {triggerNode ?? (
+          <Button variant="outline" className="w-full">
+            <PenTool className="mr-2 h-4 w-4" /> {triggerLabel}
+          </Button>
+        )}
+      </DialogTrigger>
+      <DialogContent className="max-h-[95vh] max-w-5xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{dialogTitle}</DialogTitle>
+        </DialogHeader>
+
+        <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+          <CanvasStage
+            template={t}
+            background={background}
+            layers={layers}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            onUpdate={updateLayer}
+          />
+
+          <div className="space-y-3">
+            {!hideTemplateSelector && (
+              <div>
+                <Label className="text-xs">Template</Label>
+                <Select value={tpl} onValueChange={(v) => setTpl(v as TemplateKey)} disabled={lockTemplate}>
+                  <SelectTrigger className="mt-1 h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(TEMPLATES) as TemplateKey[]).map((k) => (
+                      <SelectItem key={k} value={k}>{TEMPLATES[k].label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {lockTemplate && (
+                  <p className="mt-1 text-[10px] text-muted-foreground">Editando o produto selecionado.</p>
+                )}
+              </div>
+            )}
+
+            {(allowResizeCanvas || tpl === "custom") && (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-[11px]">Largura (px)</Label>
+                  <Input
+                    type="number"
+                    min={64}
+                    max={4096}
+                    value={customDims.w}
+                    onChange={(e) => { setRotated(true); setCustomDims((d) => ({ ...d, w: Math.max(64, Math.min(4096, Number(e.target.value) || 64)) })); }}
+                    className="mt-1 h-8 text-xs"
+                  />
+                </div>
+                <div>
+                  <Label className="text-[11px]">Altura (px)</Label>
+                  <Input
+                    type="number"
+                    min={64}
+                    max={4096}
+                    value={customDims.h}
+                    onChange={(e) => { setRotated(true); setCustomDims((d) => ({ ...d, h: Math.max(64, Math.min(4096, Number(e.target.value) || 64)) })); }}
+                    className="mt-1 h-8 text-xs"
+                  />
+                </div>
+              </div>
+            )}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => {
+                setCustomDims({ w: t.h, h: t.w });
+                setRotated(true);
+              }}
+            >
+              <RotateCw className="mr-1.5 h-3.5 w-3.5" />
+              Girar orientação ({t.w}×{t.h} → {t.h}×{t.w})
+            </Button>
+
+
+            <LayersPanel
+              layers={layers}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              onDuplicate={duplicateLayer}
+              onDelete={deleteLayer}
+              onReorder={reorderLayer}
+            />
+
+            {/* Painel da camada selecionada OU controles de fundo */}
+            {selected ? (
+              <LayerControls
+                layer={selected}
+                onUpdate={(patch) => updateLayer(selected.id, patch)}
+                onDelete={() => deleteLayer(selected.id)}
+              />
+            ) : (
+              <BackgroundControls value={background} onChange={setBackground} />
+            )}
+
+            {/* Adicionar elementos */}
+            <div className="grid grid-cols-2 gap-2">
+              {!customizationMode && (
+                <Button type="button" variant="outline" size="sm" onClick={addText}>
+                  <Type className="mr-1.5 h-3.5 w-3.5" /> Texto
+                </Button>
+              )}
+              <label className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted ${customizationMode ? "col-span-2" : ""}`}>
+                <ImagePlus className="h-3.5 w-3.5" /> Adicionar imagem
+                <input type="file" accept="image/*" className="hidden"
+                  onChange={(e) => e.target.files?.[0] && handleLogoUpload(e.target.files[0])} />
+              </label>
+            </div>
+
+            <p className="text-[10px] text-muted-foreground">
+              Dica: clique em um elemento para selecioná-lo, arraste para mover, use as alças para redimensionar.
+            </p>
+
+            {enableSave && onSave && (
+              <Button className="w-full" onClick={handleSave} disabled={saving}>
+                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                {saveLabel}
+              </Button>
+            )}
+            <Button variant="outline" className="w-full" onClick={exportPng}>
+              <Download className="mr-2 h-4 w-4" /> Baixar PNG
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
