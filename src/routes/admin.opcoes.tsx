@@ -93,67 +93,88 @@ function AdminOptions() {
 
   return (
     <div className="max-w-5xl">
-      <h2 className="font-display text-xl font-bold">Opções de produto</h2>
-      <p className="text-sm text-muted-foreground">Tamanho, material, acabamento e quantidade — com multiplicadores de preço. Tamanhos podem ter foto mostrando o produto pronto com régua.</p>
+      <h2 className="font-display text-xl font-bold">Opções & Preços</h2>
+      <p className="text-sm text-muted-foreground">
+        Cadastre tamanhos, materiais (por cm²), laminações (por cm²) e quantidades com desconto.
+      </p>
 
-      <div className="mt-4 max-w-md">
-        <Label>Produto</Label>
-        <Select value={productId} onValueChange={setProductId}>
-          <SelectTrigger><SelectValue placeholder="Selecione um produto" /></SelectTrigger>
-          <SelectContent>
-            {products.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
+      <Tabs defaultValue="product" className="mt-4">
+        <TabsList>
+          <TabsTrigger value="product">Opções por produto</TabsTrigger>
+          <TabsTrigger value="materials">Materiais (preço/cm²)</TabsTrigger>
+          <TabsTrigger value="finishes">Laminações (preço/cm²)</TabsTrigger>
+        </TabsList>
 
-      {productId && (
-        <>
-          <div className="mt-6 rounded-xl border bg-card p-4">
-            <p className="text-sm font-semibold">Adicionar opção</p>
-            <div className="mt-3 grid gap-3 sm:grid-cols-[140px_1fr_120px_100px_120px_auto]">
-              <Select value={draft.option_type} onValueChange={(v) => setDraft({ ...draft, option_type: v as Enums<"option_type"> })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {TYPES.map((t) => <SelectItem key={t} value={t}>{TYPE_LABEL[t]}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Input placeholder="Rótulo (ex: 10x15 cm)" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} />
-              <Input type="number" step="0.01" placeholder="Multiplicador" value={draft.price_modifier} onChange={(e) => setDraft({ ...draft, price_modifier: Number(e.target.value) })} />
-              <Input type="number" placeholder="Ordem" value={draft.sort_order} onChange={(e) => setDraft({ ...draft, sort_order: Number(e.target.value) })} />
-              <Input type="number" placeholder="Qtd numérica" value={draft.numeric_value} onChange={(e) => setDraft({ ...draft, numeric_value: e.target.value })} />
-              <Button onClick={add}><Plus className="mr-1.5 h-4 w-4" /> Adicionar</Button>
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">"Qtd numérica" só é usada para tipo "quantidade" (ex: 100, 500). Para tamanhos, use o formato "10x15 cm" para que a IA gere a proporção correta.</p>
+        <TabsContent value="product" className="mt-4 space-y-4">
+          <div className="max-w-md">
+            <Label>Produto</Label>
+            <Select value={productId} onValueChange={setProductId}>
+              <SelectTrigger><SelectValue placeholder="Selecione um produto" /></SelectTrigger>
+              <SelectContent>
+                {products.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
 
-          {loading ? (
-            <div className="mt-6 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-brand" /></div>
-          ) : (
-            <div className="mt-6 space-y-6">
-              {grouped.map(({ type, items }) => (
-                <div key={type}>
-                  <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">{TYPE_LABEL[type]}</h3>
-                  {items.length === 0 ? (
-                    <p className="rounded-xl border border-dashed bg-card p-4 text-sm text-muted-foreground">Nenhuma opção.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {items.map((o) => (
-                        <OptionRow
-                          key={o.id}
-                          opt={o}
-                          onSave={(p) => update(o, p)}
-                          onDelete={() => remove(o)}
-                          onLocalImage={(url) => setOptions((prev) => prev.map((x) => x.id === o.id ? { ...x, image: url } : x))}
-                        />
-                      ))}
-                    </div>
-                  )}
+          {productId && (
+            <>
+              <div className="rounded-xl border bg-card p-4">
+                <p className="text-sm font-semibold">Adicionar opção</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-[140px_1fr_100px_120px_auto]">
+                  <Select value={draft.option_type} onValueChange={(v) => setDraft({ ...draft, option_type: v as Enums<"option_type"> })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {TYPES.map((t) => <SelectItem key={t} value={t}>{TYPE_LABEL[t]}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Input placeholder="Rótulo (ex: 9x5 cm, Couché 300g, 100 unidades)" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} />
+                  <Input type="number" placeholder="Ordem" value={draft.sort_order} onChange={(e) => setDraft({ ...draft, sort_order: Number(e.target.value) })} />
+                  <Input type="number" placeholder="Qtd numérica" value={draft.numeric_value} onChange={(e) => setDraft({ ...draft, numeric_value: e.target.value })} />
+                  <Button onClick={add}><Plus className="mr-1.5 h-4 w-4" /> Adicionar</Button>
                 </div>
-              ))}
-            </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Para <strong>Tamanho</strong> defina largura/altura na linha. Para <strong>Material/Laminação</strong>, o nome deve bater com o cadastro global. Para <strong>Quantidade</strong> use "Qtd numérica" (ex: 100, 1000) e configure desconto na linha.
+                </p>
+              </div>
+
+              {loading ? (
+                <div className="flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-brand" /></div>
+              ) : (
+                <div className="space-y-6">
+                  {grouped.map(({ type, items }) => (
+                    <div key={type}>
+                      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">{TYPE_LABEL[type]}</h3>
+                      {items.length === 0 ? (
+                        <p className="rounded-xl border border-dashed bg-card p-4 text-sm text-muted-foreground">Nenhuma opção.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {items.map((o) => (
+                            <OptionRow
+                              key={o.id}
+                              opt={o}
+                              onSave={(p) => update(o, p)}
+                              onDelete={() => remove(o)}
+                              onLocalImage={(url) => setOptions((prev) => prev.map((x) => x.id === o.id ? { ...x, image: url } : x))}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
-        </>
-      )}
+        </TabsContent>
+
+        <TabsContent value="materials" className="mt-4">
+          <GlobalPricingManager kind="materials" />
+        </TabsContent>
+
+        <TabsContent value="finishes" className="mt-4">
+          <GlobalPricingManager kind="finishes" />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
