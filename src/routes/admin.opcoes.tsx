@@ -440,24 +440,35 @@ function GlobalPricingManager({ kind }: { kind: GlobalKind }) {
   return (
     <div className="space-y-4">
       <div className="rounded-xl border bg-surface-muted p-4 text-sm">
-        <p className="font-medium">{label} — preço universal por cm²</p>
+        <p className="font-medium">{label} — preço universal por mm²</p>
         <p className="text-muted-foreground text-xs mt-1">
-          Ex.: Couché 300g = R$ 0,05 / cm². Esse preço é usado por TODOS os produtos cuja opção {kind === "materials" ? "Material" : "Acabamento"} tiver o mesmo nome.
+          Ex.: Couché 300g = R$ 0,0005 / mm² (equivale a R$ 0,05 / cm²). Esse preço é usado por TODOS os produtos cuja opção {kind === "materials" ? "Material" : "Acabamento"} tiver o mesmo nome.
         </p>
       </div>
 
       <div className="rounded-xl border bg-card p-4">
         <p className="text-sm font-semibold">Adicionar</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_180px_140px_auto]">
-          <Input placeholder="Nome (ex: Couché 300g)" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
-          <Select value={draft.material_type_id} onValueChange={(v) => setDraft({ ...draft, material_type_id: v })}>
-            <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
-            <SelectContent>
-              {types.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Input type="number" step="0.001" placeholder="R$/cm²" value={draft.price_per_cm2} onChange={(e) => setDraft({ ...draft, price_per_cm2: e.target.value })} />
-          <Button onClick={add}><Plus className="mr-1.5 h-4 w-4" /> Adicionar</Button>
+          <div>
+            <Label className="text-xs">Nome</Label>
+            <Input placeholder="ex: Couché 300g" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+          </div>
+          <div>
+            <Label className="text-xs">Tipo</Label>
+            <Select value={draft.material_type_id} onValueChange={(v) => setDraft({ ...draft, material_type_id: v })}>
+              <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
+              <SelectContent>
+                {types.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">R$ / mm²</Label>
+            <Input type="number" step="0.0001" placeholder="0.0005" value={draft.price_per_mm2} onChange={(e) => setDraft({ ...draft, price_per_mm2: e.target.value })} />
+          </div>
+          <div className="flex items-end">
+            <Button onClick={add}><Plus className="mr-1.5 h-4 w-4" /> Adicionar</Button>
+          </div>
         </div>
       </div>
 
@@ -481,24 +492,39 @@ function GlobalEditRow({ row, types, onSave, onDelete }: {
   onDelete: () => void;
 }) {
   const [name, setName] = useState(row.name);
-  const [price, setPrice] = useState(String(row.price_per_cm2));
+  // UI em mm²; banco em cm². 1 cm² = 100 mm² → mm² = cm²/100
+  const [priceMm2, setPriceMm2] = useState(String(Number(row.price_per_cm2) / 100));
   const [typeId, setTypeId] = useState(row.material_type_id);
-  const dirty = name !== row.name || price !== String(row.price_per_cm2) || typeId !== row.material_type_id;
+  const currentMm2 = String(Number(row.price_per_cm2) / 100);
+  const dirty = name !== row.name || priceMm2 !== currentMm2 || typeId !== row.material_type_id;
 
   return (
     <div className="rounded-xl border bg-card p-3 grid gap-2 sm:grid-cols-[1fr_180px_140px_auto_auto]">
-      <Input value={name} onChange={(e) => setName(e.target.value)} />
-      <Select value={typeId} onValueChange={setTypeId}>
-        <SelectTrigger><SelectValue /></SelectTrigger>
-        <SelectContent>
-          {types.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-        </SelectContent>
-      </Select>
-      <Input type="number" step="0.001" value={price} onChange={(e) => setPrice(e.target.value)} />
-      <Button size="sm" disabled={!dirty} onClick={() => onSave({ name, price_per_cm2: Number(price), material_type_id: typeId })}>
-        <Save className="h-4 w-4" />
-      </Button>
-      <Button size="sm" variant="ghost" onClick={onDelete}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+      <div>
+        <Label className="text-xs">Nome</Label>
+        <Input value={name} onChange={(e) => setName(e.target.value)} />
+      </div>
+      <div>
+        <Label className="text-xs">Tipo</Label>
+        <Select value={typeId} onValueChange={setTypeId}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {types.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label className="text-xs">R$ / mm²</Label>
+        <Input type="number" step="0.0001" value={priceMm2} onChange={(e) => setPriceMm2(e.target.value)} />
+      </div>
+      <div className="flex items-end">
+        <Button size="sm" disabled={!dirty} onClick={() => onSave({ name, price_per_cm2: Number(priceMm2) * 100, material_type_id: typeId })}>
+          <Save className="h-4 w-4" />
+        </Button>
+      </div>
+      <div className="flex items-end">
+        <Button size="sm" variant="ghost" onClick={onDelete}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+      </div>
     </div>
   );
 }
