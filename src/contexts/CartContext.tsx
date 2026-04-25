@@ -1,16 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables, Json } from "@/integrations/supabase/types";
 
 export type CartItemRow = Tables<"cart_items"> & {
-  products:
-    | (Pick<Tables<"products">, "id" | "name" | "image" | "slug"> & {
-        complexity: "simple" | "complex" | null;
-        categories: { complexity: "simple" | "complex" } | null;
+  produtos:
+    | (Pick<Tables<"produtos">, "id" | "nome" | "imagem" | "slug" | "complexidade"> & {
+        categories: { complexity: "simple" | "medium" | "complex" } | null;
       })
     | null;
-  quantity_option: Pick<Tables<"product_options">, "id" | "numeric_value"> | null;
 };
 
 type CartCtx = {
@@ -26,16 +24,14 @@ type CartCtx = {
 };
 
 export type AddItemInput = {
-  product_id: string;
-  size_option_id: string | null;
-  material_option_id: string | null;
-  finish_option_id: string | null;
-  quantity_option_id: string | null;
+  produto_id: string;
+  composicao: Json;
   urgency: "standard" | "express";
   unit_price: number;
   total_price: number;
-  qty: number;
+  qtd: number;
   artwork_path?: string | null;
+  artwork_back_path?: string | null;
 };
 
 const Ctx = createContext<CartCtx | undefined>(undefined);
@@ -53,10 +49,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     const { data } = await supabase
       .from("cart_items")
-      .select("*, products(id, name, image, slug, complexity, categories(complexity)), quantity_option:product_options!cart_items_quantity_option_id_fkey(id, numeric_value)")
+      .select("*, produtos(id, nome, imagem, slug, complexidade, categories(complexity))")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
-    setItems((data as CartItemRow[]) ?? []);
+    setItems((data as unknown as CartItemRow[]) ?? []);
     setLoading(false);
   }, [user]);
 
@@ -81,8 +77,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const updateQty = async (id: string, qty: number) => {
-    // BUG-001: cálculo correto baseado no preço unitário real (que já inclui modificadores de
-    // tamanho/material/acabamento e urgência), multiplicado pela nova quantidade.
     const safeQty = Math.max(1, Math.min(9999, Math.floor(qty)));
     const item = items.find((i) => i.id === id);
     if (!item) return;
@@ -90,7 +84,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const newTotal = Number((unit * safeQty).toFixed(2));
     await supabase
       .from("cart_items")
-      .update({ qty: safeQty, total_price: newTotal })
+      .update({ qtd: safeQty, total_price: newTotal })
       .eq("id", id);
     await refresh();
   };
@@ -102,7 +96,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const subtotal = items.reduce((acc, i) => acc + Number(i.total_price), 0);
-  const count = items.reduce((acc, i) => acc + i.qty, 0);
+  const count = items.reduce((acc, i) => acc + i.qtd, 0);
 
   return (
     <Ctx.Provider value={{ items, count, subtotal, loading, add, remove, updateQty, clear, refresh }}>

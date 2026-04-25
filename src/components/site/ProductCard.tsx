@@ -2,13 +2,12 @@ import { Link } from "@tanstack/react-router";
 import { Clock, ArrowRight, ImageIcon, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatBRL } from "@/lib/catalog";
 import type { Tables } from "@/integrations/supabase/types";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 export type ProductCardData = Pick<
-  Tables<"products">,
-  "id" | "slug" | "name" | "short_description" | "image" | "base_price" | "production_days" | "bestseller" | "new_release"
+  Tables<"produtos">,
+  "id" | "slug" | "nome" | "descricao_curta" | "imagem" | "dias_producao" | "bestseller" | "novidade"
 >;
 
 export function ProductCard({ product }: { product: ProductCardData }) {
@@ -35,10 +34,10 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             <Pencil className="h-4 w-4" />
           </Link>
         )}
-        {product.image && /^(https?:|\/)/.test(product.image) ? (
+        {product.imagem && /^(https?:|\/)/.test(product.imagem) ? (
           <img
-            src={product.image}
-            alt={product.name}
+            src={product.imagem}
+            alt={product.nome}
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
@@ -52,7 +51,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           {product.bestseller && (
             <Badge className="bg-brand text-brand-foreground hover:bg-brand">Mais vendido</Badge>
           )}
-          {product.new_release && (
+          {product.novidade && (
             <Badge variant="secondary" className="bg-warning/90 text-warning-foreground">
               Lançamento
             </Badge>
@@ -60,20 +59,20 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         </div>
       </div>
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="font-display text-base font-semibold leading-snug">{product.name}</h3>
+        <h3 className="font-display text-base font-semibold leading-snug">{product.nome}</h3>
         <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">
-          {product.short_description ?? ""}
+          {product.descricao_curta ?? ""}
         </p>
 
         <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
           <Clock className="h-3.5 w-3.5 text-brand" />
-          A partir de 3 dias úteis + 1 dia de postagem
+          A partir de {product.dias_producao} dias úteis + 1 dia de postagem
         </div>
 
         <div className="mt-5 flex items-end justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">A partir de</p>
-            <p className="text-xl font-bold text-foreground">{formatBRL(Number(product.base_price))}</p>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Configurável</p>
+            <p className="text-sm font-semibold text-foreground">Calcule no produto</p>
           </div>
           <Button
             size="sm"
