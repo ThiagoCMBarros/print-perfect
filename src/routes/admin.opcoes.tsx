@@ -121,19 +121,33 @@ function AdminOptions() {
               <div className="rounded-xl border bg-card p-4">
                 <p className="text-sm font-semibold">Adicionar opção</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-[140px_1fr_100px_120px_auto]">
-                  <Select value={draft.option_type} onValueChange={(v) => setDraft({ ...draft, option_type: v as Enums<"option_type"> })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {TYPES.map((t) => <SelectItem key={t} value={t}>{TYPE_LABEL[t]}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <Input placeholder="Rótulo (ex: 9x5 cm, Couché 300g, 100 unidades)" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} />
-                  <Input type="number" placeholder="Ordem" value={draft.sort_order} onChange={(e) => setDraft({ ...draft, sort_order: Number(e.target.value) })} />
-                  <Input type="number" placeholder="Qtd numérica" value={draft.numeric_value} onChange={(e) => setDraft({ ...draft, numeric_value: e.target.value })} />
-                  <Button onClick={add}><Plus className="mr-1.5 h-4 w-4" /> Adicionar</Button>
+                  <div>
+                    <Label className="text-xs">Tipo</Label>
+                    <Select value={draft.option_type} onValueChange={(v) => setDraft({ ...draft, option_type: v as Enums<"option_type"> })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {TYPES.map((t) => <SelectItem key={t} value={t}>{TYPE_LABEL[t]}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Rótulo</Label>
+                    <Input placeholder="ex: 90x50 mm, Couché 300g, 100 unidades" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Ordem</Label>
+                    <Input type="number" placeholder="0" value={draft.sort_order} onChange={(e) => setDraft({ ...draft, sort_order: Number(e.target.value) })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Qtd numérica</Label>
+                    <Input type="number" placeholder="ex: 100" value={draft.numeric_value} onChange={(e) => setDraft({ ...draft, numeric_value: e.target.value })} />
+                  </div>
+                  <div className="flex items-end">
+                    <Button onClick={add}><Plus className="mr-1.5 h-4 w-4" /> Adicionar</Button>
+                  </div>
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Para <strong>Tamanho</strong> defina largura/altura na linha. Para <strong>Material/Laminação</strong>, o nome deve bater com o cadastro global. Para <strong>Quantidade</strong> use "Qtd numérica" (ex: 100, 1000) e configure desconto na linha.
+                  Para <strong>Tamanho</strong> defina largura/altura em mm na linha. Para <strong>Material/Laminação</strong>, o nome deve bater com o cadastro global. Para <strong>Quantidade</strong> use "Qtd numérica" (ex: 100, 1000) e configure desconto na linha.
                 </p>
               </div>
 
