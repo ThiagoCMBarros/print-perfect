@@ -117,10 +117,8 @@ function CartPage() {
             <h2 className="font-display text-lg font-bold">Resumo</h2>
             <div className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatBRL(subtotal)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Frete</span><span>{shipping === 0 ? "Grátis" : formatBRL(shipping)}</span></div>
-              {shipping > 0 && (
-                <p className="text-xs text-muted-foreground">Faltam {formatBRL(250 - subtotal)} para frete grátis.</p>
-              )}
+              <div className="flex justify-between"><span className="text-muted-foreground">Frete</span><span className="text-muted-foreground">A calcular no checkout</span></div>
+              <p className="text-xs text-muted-foreground">Frete grátis em compras acima de {formatBRL(250)}.</p>
               <p className="pt-1 text-xs text-muted-foreground">
                 Prazo final será calculado no checkout (depende do CEP).
               </p>
