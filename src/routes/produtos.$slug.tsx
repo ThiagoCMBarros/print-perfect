@@ -354,6 +354,26 @@ function ProductPage() {
                 <Label>Quantidade</Label>
                 <Input type="number" min={1} value={qtd} onChange={(e) => setQtd(Math.max(1, Number(e.target.value)))} />
               </div>
+
+              {user && (
+                <div>
+                  <Label>Sua arte</Label>
+                  <ArtworkPicker
+                    userId={user.id}
+                    produtoId={product.id}
+                    categorySlug={product.categories?.slug ?? null}
+                    larguraMm={Number(product.largura_mm)}
+                    alturaMm={Number(product.altura_mm)}
+                    value={artwork}
+                    onChange={setArtwork}
+                  />
+                </div>
+              )}
+              {!user && (
+                <p className="text-xs text-muted-foreground">
+                  Faça login para enviar ou personalizar sua arte agora — você também pode anexar a arte depois, no detalhe do pedido.
+                </p>
+              )}
             </Card>
 
             {/* Preço */}
