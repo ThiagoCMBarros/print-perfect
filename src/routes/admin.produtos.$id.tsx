@@ -74,6 +74,8 @@ function AdminProductForm() {
             category_id: data.category_id, image: data.image ?? "",
             active: data.active, bestseller: data.bestseller, new_release: data.new_release,
             complexity: ((data as Tables<"products"> & { complexity?: "simple" | "complex" | null }).complexity) ?? "",
+            pricing_mode: ((data as Tables<"products"> & { pricing_mode?: "auto" | "fixed" }).pricing_mode) ?? "auto",
+            fixed_unit_price: String((data as Tables<"products"> & { fixed_unit_price?: number | null }).fixed_unit_price ?? 0),
           });
         }
         setLoading(false);
